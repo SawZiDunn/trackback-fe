@@ -1,5 +1,5 @@
 {
-  "name": "trackback-fe-scaffold-2288423",
+  "name": "trackback-fe",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,9 +9,12 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.103.2",
+    "axios": "^1.20.0",
     "next": "16.3.6",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
