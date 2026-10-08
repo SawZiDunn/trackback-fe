@@ -48,7 +48,7 @@ export function RegisterForm() {
     <form className="space-y-5" onSubmit={handleSubmit}>
       <AuthField label="Full name" name="name" placeholder="Alex Morgan" />
       <AuthField
-        label="Campus email"
+        label="Email"
         name="email"
         placeholder="netid@university.edu"
         type="email"
