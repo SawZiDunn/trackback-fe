@@ -1,10 +1,10 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { UserInfo } from "../api/auth";
+import type { User } from "@/types/user";
 
 interface AuthState {
-  user: UserInfo | null;
-  setUser: (user: UserInfo) => void;
+  user: User | null;
+  setUser: (user: User) => void;
   clearUser: () => void;
 }
 

@@ -1,6 +1,10 @@
+import type { User, UserInfo } from "@/types/user";
 import { apiClient } from "./client";
 
-// DTO pattern: request contracts
+// Re-export User/UserInfo domain types for API consumers if needed
+export type { User, UserInfo };
+
+// DTO contracts: Raw API requests
 export interface RegisterRequest {
   name: string;
   email: string;
@@ -23,29 +27,10 @@ export interface ResetPasswordRequest {
   password: string;
 }
 
-export interface UpdateProfileRequest {
-  name?: string;
-  email?: string;
-  profileUrl?: string | null;
-  profilePublicId?: string | null;
-}
-
-// DTO pattern: response contracts
+// DTO contracts: Raw API responses
 export interface ApiResponse<T> {
   data: T;
   message: string;
-}
-
-export interface UserInfo {
-  id: string;
-  name: string;
-  email: string;
-  profileUrl: string | null;
-  profilePublicId?: string | null;
-  role: string;
-  createdAt?: string;
-  updatedAt?: string;
-  deletedAt?: string | null;
 }
 
 export interface RegisterUserData {
@@ -69,7 +54,7 @@ export type RegisterResponseData = RegisterUserData;
 
 export interface LoginData {
   accessToken: string;
-  userInfo: UserInfo;
+  userInfo: User;
 }
 
 export interface LogoutResponse {
@@ -84,74 +69,60 @@ export interface ResetPasswordResponse {
   message: string;
 }
 
-// API methods
-export async function registerUser(request: RegisterRequest): Promise<RegisterResponse> {
-  const response = await apiClient.post<RegisterResponse>("/auth/register", request);
+export interface UpdateProfileApiResponse {
+  response: User;
+  message: string;
+}
+
+// Pure HTTP Transport Layer (No business logic, no form parsing, no fallbacks)
+export async function postRegister(data: RegisterRequest): Promise<RegisterResponse> {
+  const response = await apiClient.post<RegisterResponse>("/auth/register", data);
   return response.data;
 }
 
-export async function loginUser(request: LoginRequest): Promise<ApiResponse<LoginData>> {
-  const response = await apiClient.post<ApiResponse<LoginData>>("/auth/login", request);
+export async function postLogin(data: LoginRequest): Promise<ApiResponse<LoginData>> {
+  const response = await apiClient.post<ApiResponse<LoginData>>("/auth/login", data);
   return response.data;
 }
 
-export async function forgotPassword(
-  request: ForgotPasswordRequest,
+export async function deleteLogout(): Promise<LogoutResponse> {
+  const response = await apiClient.delete<LogoutResponse>("/auth/logout");
+  return response.data;
+}
+
+export async function postForgotPassword(
+  data: ForgotPasswordRequest,
 ): Promise<ForgotPasswordResponse> {
-  const response = await apiClient.post<ForgotPasswordResponse>(
-    "/auth/forgot-password",
-    request,
-  );
+  const response = await apiClient.post<ForgotPasswordResponse>("/auth/forgot-password", data);
   return response.data;
 }
 
-export async function resetPasswordUser(
-  request: ResetPasswordRequest,
+export async function postResetPassword(
+  data: ResetPasswordRequest,
 ): Promise<ResetPasswordResponse> {
   const response = await apiClient.post<ResetPasswordResponse>(
-    `/auth/reset-password?token=${encodeURIComponent(request.token)}`,
-    {
-      token: request.token,
-      password: request.password,
-    },
+    `/auth/reset-password?token=${encodeURIComponent(data.token)}`,
+    data,
   );
-  return response.data ?? { message: "Password reset successfully" };
+  return response.data;
 }
 
-export async function getCurrentUser(): Promise<UserInfo> {
-  const response = await apiClient.get<ApiResponse<UserInfo> | UserInfo>("/users/me");
-  if (
-    response.data &&
-    typeof response.data === "object" &&
-    "data" in response.data &&
-    response.data.data
-  ) {
-    return response.data.data as UserInfo;
-  }
-  return response.data as UserInfo;
+export async function getMe(): Promise<Record<string, unknown>> {
+  const response = await apiClient.get<Record<string, unknown>>("/users/me");
+  return response.data;
 }
 
-export async function updateProfileUser(request: UpdateProfileRequest): Promise<UserInfo> {
-  const response = await apiClient.patch<ApiResponse<UserInfo> | UserInfo>(
-    "/users/me",
-    request,
-  );
-  if (
-    response.data &&
-    typeof response.data === "object" &&
-    "data" in response.data &&
-    response.data.data
-  ) {
-    return response.data.data as UserInfo;
-  }
-  return response.data as UserInfo;
+export async function getUserById(userId: string): Promise<Record<string, unknown>> {
+  const response = await apiClient.get<Record<string, unknown>>(`/users/${userId}`);
+  return response.data;
 }
 
-export function getUser(userId: string) {
-  return apiClient.get<ApiResponse<UserInfo>>(`/users/${userId}`);
-}
-
-export async function logoutUser(): Promise<LogoutResponse> {
-  const response = await apiClient.delete<LogoutResponse>("/auth/logout");
-  return response.data ?? { message: "Logout Successfully" };
+export async function patchMe(
+  data: FormData | Record<string, unknown>,
+): Promise<UpdateProfileApiResponse> {
+  const isFormData = typeof FormData !== "undefined" && data instanceof FormData;
+  const response = await apiClient.patch<UpdateProfileApiResponse>("/users/me", data, {
+    headers: isFormData ? { "Content-Type": "multipart/form-data" } : undefined,
+  });
+  return response.data;
 }

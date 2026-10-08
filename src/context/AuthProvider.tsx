@@ -1,5 +1,6 @@
 "use client";
 
+import axios from "axios";
 import {
   createContext,
   useCallback,
@@ -18,22 +19,21 @@ import type {
   RegisterResponse,
   ResetPasswordRequest,
   ResetPasswordResponse,
-  UpdateProfileRequest,
-  UserInfo,
 } from "@/core/api/auth";
 import { useAuthStore } from "@/core/store/useAuthStore";
-import { authService } from "@/services/authService";
+import { authService, type UpdateProfilePayload } from "@/services/authService";
+import type { User } from "@/types/user";
 
 // Observer pattern: context consumers re-render when auth state changes
 interface AuthContextValue {
   isLoading: boolean;
   isAuthenticated: boolean;
-  user: UserInfo | null;
+  user: User | null;
   login: (request: LoginRequest) => Promise<void>;
   register: (request: RegisterRequest) => Promise<RegisterResponse>;
   forgotPassword: (request: ForgotPasswordRequest) => Promise<ForgotPasswordResponse>;
   resetPassword: (request: ResetPasswordRequest) => Promise<ResetPasswordResponse>;
-  updateProfile: (request: UpdateProfileRequest) => Promise<UserInfo>;
+  updateProfile: (payload: UpdateProfilePayload) => Promise<User>;
   logout: () => Promise<void>;
 }
 
@@ -45,20 +45,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const clearUser = useAuthStore((state) => state.clearUser);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Restore session on initial mount using cookies
+  // Restore and verify session on mount using cookies
   useEffect(() => {
     let isMounted = true;
 
     async function checkAuthSession() {
       try {
-        const currentUser = await authService.getCurrentUser();
+        const currentUser = await authService.getCurrentUser(user?.id);
         if (isMounted && currentUser) {
           setUser(currentUser);
         }
-      } catch {
-        // If cookie is invalid or expired, clear user state
-        if (isMounted) {
-          clearUser();
+      } catch (error) {
+        // ONLY clear user if backend explicitly returns 401 Unauthorized
+        if (axios.isAxiosError(error) && error.response?.status === 401) {
+          if (isMounted) {
+            clearUser();
+          }
         }
       } finally {
         if (isMounted) {
@@ -72,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       isMounted = false;
     };
-  }, [setUser, clearUser]);
+  }, [setUser, clearUser, user?.id]);
 
   const login = useCallback(
     async (request: LoginRequest) => {
@@ -151,12 +153,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const updateProfile = useCallback(
-    async (request: UpdateProfileRequest): Promise<UserInfo> => {
+    async (payload: UpdateProfilePayload): Promise<User> => {
       setIsLoading(true);
       try {
-        const updatedUser = await authService.updateProfile(request);
+        const { user: updatedUser, message } = await authService.updateProfile(payload);
         setUser(updatedUser);
-        showToast.success("Profile updated successfully", {
+        showToast.success(message || "Update Successfully", {
           duration: 4000,
           progress: true,
           position: "top-right",

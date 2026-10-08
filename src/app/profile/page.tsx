@@ -6,13 +6,14 @@ import {
   Lock,
   LogOut,
   SquarePen,
-  X,
 } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Footer } from "@/components/common/Footer";
 import { Header } from "@/components/common/Header";
+import { EditProfileModal } from "@/components/profile/EditProfileModal";
+import type { UpdateProfilePayload } from "@/services/authService";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function ProfilePage() {
@@ -22,8 +23,6 @@ export default function ProfilePage() {
 
   // Edit profile dialog state
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [editedName, setEditedName] = useState(user?.name || "");
-  const [isUpdating, setIsUpdating] = useState(false);
 
   // Redirect to login ONLY if not loading and user is definitely unauthenticated
   useEffect(() => {
@@ -45,26 +44,16 @@ export default function ProfilePage() {
   }
 
   const displayName = user?.name || "Alex Rivera";
-  const displayEmail = user?.email || "alex.rivera@university.edu";
   const displayUid = user?.id ? user.id.slice(0, 8) : "984021";
   const studentId = `STU-${displayUid.toUpperCase()}`;
-  const avatarUrl =
-    user?.profileUrl ||
-    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250";
 
-  const handleSaveProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsUpdating(true);
-    try {
-      await updateProfile({ name: editedName });
-      setIsEditOpen(false);
-    } finally {
-      setIsUpdating(false);
-    }
+  const handleSaveProfile = async (payload: UpdateProfilePayload) => {
+    await updateProfile(payload);
   };
 
   return (
     <div className="flex min-h-screen flex-col bg-[#f8f9fa]">
+      {/* Sticky Navbar Header */}
       <Header />
 
       {/* Main Profile Content */}
@@ -76,7 +65,8 @@ export default function ProfilePage() {
               {/* Avatar with Verified Badge */}
               <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-neutral-300 bg-neutral-100 sm:h-24 sm:w-24">
                 <Image
-                  src={avatarUrl}
+                  src={ user?.profileUrl ||
+    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250"}
                   alt={displayName}
                   width={96}
                   height={96}
@@ -99,7 +89,7 @@ export default function ProfilePage() {
                   </span>
                 </div>
                 <p className="mt-1 text-xs text-tertiary sm:text-sm">
-                  Senior Undergraduate • Faculty of Computer Science & Engineering
+                  {user?.about}
                 </p>
               </div>
             </div>
@@ -107,10 +97,7 @@ export default function ProfilePage() {
             {/* Edit Profile Button */}
             <button
               type="button"
-              onClick={() => {
-                setEditedName(displayName);
-                setIsEditOpen(true);
-              }}
+              onClick={() => setIsEditOpen(true)}
               className="inline-flex items-center gap-2 rounded-lg border border-neutral/80 bg-white px-4 py-2 text-xs font-semibold text-neutral-800 shadow-2xs transition hover:bg-[#f4f5f7] cursor-pointer"
             >
               <SquarePen size={14} className="text-neutral-600" />
@@ -152,7 +139,7 @@ export default function ProfilePage() {
                       University Email (Domain Synced)
                     </span>
                     <span className="mt-0.5 block text-sm font-mono font-semibold text-primary">
-                      {displayEmail}
+                      {user?.email || "alex.rivera@university.edu"}
                     </span>
                   </div>
                   <span className="flex items-center gap-1 rounded-full bg-primary px-2.5 py-0.5 text-[10px] font-semibold text-white shadow-xs">
@@ -208,66 +195,12 @@ export default function ProfilePage() {
 
       {/* Edit Profile Modal Dialog */}
       {isEditOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-md rounded-2xl border border-neutral/60 bg-white p-6 shadow-xl">
-            <div className="flex items-center justify-between border-b border-neutral/40 pb-3">
-              <h3 className="text-base font-bold text-primary">Edit Profile</h3>
-              <button
-                type="button"
-                onClick={() => setIsEditOpen(false)}
-                className="rounded-md p-1 text-tertiary hover:bg-neutral-100 cursor-pointer"
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveProfile} className="mt-4 space-y-4">
-              <div>
-                <label className="block text-[11px] font-semibold uppercase tracking-wider text-tertiary">
-                  Display Name
-                </label>
-                <input
-                  type="text"
-                  value={editedName}
-                  onChange={(e) => setEditedName(e.target.value)}
-                  required
-                  placeholder="Enter your name"
-                  className="mt-1 h-10 w-full rounded-lg border border-neutral/80 bg-[#f4f5f7] px-3 text-sm text-primary outline-none focus:border-primary focus:bg-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-semibold uppercase tracking-wider text-tertiary">
-                  Campus Email (Locked)
-                </label>
-                <input
-                  type="text"
-                  value={displayEmail}
-                  disabled
-                  className="mt-1 h-10 w-full rounded-lg border border-neutral/60 bg-neutral-100 px-3 text-sm text-neutral-400 outline-none cursor-not-allowed"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-3">
-                <button
-                  type="button"
-                  onClick={() => setIsEditOpen(false)}
-                  disabled={isUpdating}
-                  className="rounded-lg border border-neutral/80 px-4 py-2 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isUpdating}
-                  className="rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-white transition hover:bg-secondary cursor-pointer disabled:opacity-70"
-                >
-                  {isUpdating ? "Saving..." : "Save Changes"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <EditProfileModal
+          isOpen={isEditOpen}
+          onClose={() => setIsEditOpen(false)}
+          user={user}
+          onSave={handleSaveProfile}
+        />
       )}
 
       {/* Footer */}
