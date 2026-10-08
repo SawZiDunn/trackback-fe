@@ -17,6 +17,9 @@ dependencies:
   next:
     specifier: 16.3.6
     version: 16.3.6(@babel/core@7.29.7)(@types/node@20.19.43)(react-dom@19.2.8)(react@19.2.8)
+  nextjs-toast-notify:
+    specifier: ^1.62.0
+    version: 1.62.0
   react:
     specifier: 19.2.8
     version: 19.2.8
@@ -3014,6 +3017,10 @@ packages:
       - '@babel/core'
       - '@types/node'
       - babel-plugin-macros
+    dev: false
+
+  /nextjs-toast-notify@1.62.0:
+    resolution: {integrity: sha512-2hn+DVYVxuNWKFXYwmvkEurxrX+8LdNSLy14sEXi4ylIvh0cVdMuJT5OyRaMej+xJnNpoEZfMp8S18V+qs+puQ==}
     dev: false
 
   /node-exports-info@1.6.2:

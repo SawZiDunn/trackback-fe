@@ -1,35 +1,52 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { AuthPage } from "@/components/auth/AuthPage";
+import { UserNav } from "@/components/common/NavBar";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Home() {
+  const router = useRouter();
+  // Observer pattern: subscribe to auth state to determine view
+  const { isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.replace("/auth/login");
+    }
+  }, [isAuthenticated, router]);
+
+  if (!isAuthenticated) {
+    return <AuthPage />;
+  }
+
   return (
     <main className="bg-background text-primary">
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-7 lg:px-10">
         <Link href="/" className="text-xl font-semibold tracking-[-0.04em]">
-        TrackBack<span className="text-tertiary">.</span>
+          TrackBack<span className="text-tertiary">.</span>
         </Link>
         <div className="flex items-center gap-3 text-sm font-medium">
           <Link href="/items" className="hidden px-4 py-2 text-tertiary sm:inline-block">
             Browse items
           </Link>
-          <Link
-            href="/auth/login"
-            className="rounded-full bg-primary px-5 py-2.5 text-white transition hover:bg-secondary"
-          >
-            Sign in
-          </Link>
+          <UserNav />
         </div>
       </nav>
 
       <section className="mx-auto grid max-w-6xl gap-14 px-6 pb-20 pt-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:px-10 lg:pb-28 lg:pt-20">
         <div>
-          <p className="mb-6 text-sm font-semibold uppercase tracking-[0.2em]           text-tertiary">
+          <p className="mb-6 text-sm font-semibold uppercase tracking-[0.2em] text-tertiary">
             Your campus, connected
           </p>
           <h1 className="max-w-3xl text-5xl font-semibold leading-[0.98] tracking-[-0.065em] sm:text-7xl">
             Lost something? Let&apos;s bring it back.
           </h1>
           <p className="mt-7 max-w-xl text-lg leading-8 text-tertiary">
-            Trackback makes it easier to report found belongings, search recent posts, and return what matters to the people who are looking for it.
+            Trackback makes it easier to report found belongings, search recent posts, and return
+            what matters to the people who are looking for it.
           </p>
           <div className="mt-9 flex flex-wrap gap-3">
             <Link
@@ -76,7 +93,9 @@ export default function Home() {
           </div>
           <div>
             <p className="text-3xl font-semibold tracking-[-0.05em]">02</p>
-            <p className="mt-3 text-sm leading-6 text-tertiary">Share a clear description when you find something.</p>
+            <p className="mt-3 text-sm leading-6 text-tertiary">
+              Share a clear description when you find something.
+            </p>
           </div>
           <div>
             <p className="text-3xl font-semibold tracking-[-0.05em]">03</p>
