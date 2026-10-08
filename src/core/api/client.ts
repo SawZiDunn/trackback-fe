@@ -1,20 +1,13 @@
 import axios from "axios";
+import { setupInterceptors } from "./interceptors";
 
+// Shared Axios client instance
 export const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080",
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-apiClient.interceptors.request.use((config) => {
-  if (typeof window !== "undefined") {
-    const token = window.localStorage.getItem("trackback-token");
-
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-  }
-
-  return config;
-});
+setupInterceptors(apiClient);

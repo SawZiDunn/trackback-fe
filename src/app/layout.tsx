@@ -1,16 +1,25 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+import type { ReactNode } from "react";
 import { QueryProvider } from "@/core/providers/QueryProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Trackback | Campus Lost & Found",
+  title: {
+    default: "TrackBack",
+    template: "%s | TrackBack",
+  },
   description: "A trusted place to reunite campus belongings with their owners.",
+  applicationName: "TrackBack",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export const viewport: Viewport = {
+  themeColor: "#FFFFFF",
+};
+
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body>
+      <body className="bg-background text-foreground antialiased">
         <QueryProvider>{children}</QueryProvider>
       </body>
     </html>
