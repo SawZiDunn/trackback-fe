@@ -4,6 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -17,6 +18,7 @@ import type {
   RegisterResponse,
   ResetPasswordRequest,
   ResetPasswordResponse,
+  UpdateProfileRequest,
   UserInfo,
 } from "@/core/api/auth";
 import { useAuthStore } from "@/core/store/useAuthStore";
@@ -31,6 +33,7 @@ interface AuthContextValue {
   register: (request: RegisterRequest) => Promise<RegisterResponse>;
   forgotPassword: (request: ForgotPasswordRequest) => Promise<ForgotPasswordResponse>;
   resetPassword: (request: ResetPasswordRequest) => Promise<ResetPasswordResponse>;
+  updateProfile: (request: UpdateProfileRequest) => Promise<UserInfo>;
   logout: () => Promise<void>;
 }
 
@@ -40,7 +43,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const user = useAuthStore((state) => state.user);
   const setUser = useAuthStore((state) => state.setUser);
   const clearUser = useAuthStore((state) => state.clearUser);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Restore session on initial mount using cookies
+  useEffect(() => {
+    let isMounted = true;
+
+    async function checkAuthSession() {
+      try {
+        const currentUser = await authService.getCurrentUser();
+        if (isMounted && currentUser) {
+          setUser(currentUser);
+        }
+      } catch {
+        // If cookie is invalid or expired, clear user state
+        if (isMounted) {
+          clearUser();
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    checkAuthSession();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [setUser, clearUser]);
 
   const login = useCallback(
     async (request: LoginRequest) => {
@@ -118,6 +150,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const updateProfile = useCallback(
+    async (request: UpdateProfileRequest): Promise<UserInfo> => {
+      setIsLoading(true);
+      try {
+        const updatedUser = await authService.updateProfile(request);
+        setUser(updatedUser);
+        showToast.success("Profile updated successfully", {
+          duration: 4000,
+          progress: true,
+          position: "top-right",
+          transition: "bounceIn",
+        });
+        return updatedUser;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [setUser],
+  );
+
   const logout = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -150,9 +202,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       register,
       forgotPassword,
       resetPassword,
+      updateProfile,
       logout,
     }),
-    [isLoading, login, register, forgotPassword, resetPassword, logout, user],
+    [isLoading, login, register, forgotPassword, resetPassword, updateProfile, logout, user],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

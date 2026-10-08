@@ -1,7 +1,7 @@
 "use client";
 
 import axios from "axios";
-import { ArrowLeft, ArrowRight, CheckCircle2, KeyRound } from "lucide-react";
+import { ArrowRight, CheckCircle2, KeyRound } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";

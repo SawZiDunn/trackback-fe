@@ -1,10 +1,12 @@
 import {
   forgotPassword,
+  getCurrentUser,
   getUser,
   loginUser,
   logoutUser,
   registerUser,
   resetPasswordUser,
+  updateProfileUser,
   type ForgotPasswordRequest,
   type ForgotPasswordResponse,
   type LoginRequest,
@@ -13,6 +15,7 @@ import {
   type RegisterResponse,
   type ResetPasswordRequest,
   type ResetPasswordResponse,
+  type UpdateProfileRequest,
   type UserInfo,
 } from "@/core/api/auth";
 
@@ -23,12 +26,12 @@ export const authService = {
     let user: UserInfo = response.data.userInfo;
 
     try {
-      const userResponse = await getUser(response.data.userInfo.id);
-      if (userResponse.data?.data) {
-        user = userResponse.data.data;
+      const freshUser = await getCurrentUser();
+      if (freshUser) {
+        user = freshUser;
       }
-    } catch(error){
-      console.log("error", error)
+    } catch {
+      // Fallback to userInfo provided in login response
     }
 
     return {
@@ -50,23 +53,28 @@ export const authService = {
     }
   },
 
-  async getCurrentUser(userId: string): Promise<UserInfo> {
+  async getCurrentUser(): Promise<UserInfo> {
+    return await getCurrentUser();
+  },
+
+  async getUser(userId: string): Promise<UserInfo> {
     const response = await getUser(userId);
-    return response.data.data;
+    return "data" in response.data ? response.data.data : response.data;
+  },
+
+  async updateProfile(request: UpdateProfileRequest): Promise<UserInfo> {
+    return await updateProfileUser(request);
   },
 
   async register(request: RegisterRequest): Promise<RegisterResponse> {
-    const response = await registerUser(request);
-    return response;
+    return await registerUser(request);
   },
 
   async forgotPassword(request: ForgotPasswordRequest): Promise<ForgotPasswordResponse> {
-    const response = await forgotPassword(request);
-    return response;
+    return await forgotPassword(request);
   },
 
   async resetPassword(request: ResetPasswordRequest): Promise<ResetPasswordResponse> {
-    const response = await resetPasswordUser(request);
-    return response;
+    return await resetPasswordUser(request);
   },
 };

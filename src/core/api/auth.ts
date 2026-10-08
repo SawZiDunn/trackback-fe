@@ -23,6 +23,13 @@ export interface ResetPasswordRequest {
   password: string;
 }
 
+export interface UpdateProfileRequest {
+  name?: string;
+  email?: string;
+  profileUrl?: string | null;
+  profilePublicId?: string | null;
+}
+
 // DTO pattern: response contracts
 export interface ApiResponse<T> {
   data: T;
@@ -34,7 +41,11 @@ export interface UserInfo {
   name: string;
   email: string;
   profileUrl: string | null;
+  profilePublicId?: string | null;
   role: string;
+  createdAt?: string;
+  updatedAt?: string;
+  deletedAt?: string | null;
 }
 
 export interface RegisterUserData {
@@ -105,6 +116,35 @@ export async function resetPasswordUser(
     },
   );
   return response.data ?? { message: "Password reset successfully" };
+}
+
+export async function getCurrentUser(): Promise<UserInfo> {
+  const response = await apiClient.get<ApiResponse<UserInfo> | UserInfo>("/users/me");
+  if (
+    response.data &&
+    typeof response.data === "object" &&
+    "data" in response.data &&
+    response.data.data
+  ) {
+    return response.data.data as UserInfo;
+  }
+  return response.data as UserInfo;
+}
+
+export async function updateProfileUser(request: UpdateProfileRequest): Promise<UserInfo> {
+  const response = await apiClient.patch<ApiResponse<UserInfo> | UserInfo>(
+    "/users/me",
+    request,
+  );
+  if (
+    response.data &&
+    typeof response.data === "object" &&
+    "data" in response.data &&
+    response.data.data
+  ) {
+    return response.data.data as UserInfo;
+  }
+  return response.data as UserInfo;
 }
 
 export function getUser(userId: string) {
