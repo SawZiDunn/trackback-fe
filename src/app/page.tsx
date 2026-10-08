@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { AuthPage } from "@/components/auth/AuthPage";
-import { Footer } from "@/components/common/Footer";
-import { Header } from "@/components/common/Header";
-import { useAuth } from "@/hooks/useAuth";
+import { AuthPage } from "@/modules/auth/components/AuthPage";
+import { Footer } from "@/common/components/Footer";
+import { Header } from "@/common/components/Header";
+import { useAuth } from "@/modules/auth/hooks/useAuth";
 
 export default function Home() {
   const router = useRouter();

@@ -1,5 +1,5 @@
-import { AuthPage } from "@/components/auth/AuthPage";
+import { ForgotPasswordPage } from "@/modules/auth/pages/ForgotPasswordPage";
 
-export default function ForgotPasswordPage() {
-  return <AuthPage initialMode="forgot-password" />;
+export default function Page() {
+  return <ForgotPasswordPage />;
 }

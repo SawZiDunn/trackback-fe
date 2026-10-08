@@ -1,5 +1,5 @@
-import { AuthPage } from "@/components/auth/AuthPage";
+import { LoginPage } from "@/modules/auth/pages/LoginPage";
 
-export default function LoginPage() {
-  return <AuthPage />;
+export default function Page() {
+  return <LoginPage />;
 }

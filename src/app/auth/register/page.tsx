@@ -1,5 +1,5 @@
-import { AuthPage } from "@/components/auth/AuthPage";
+import { RegisterPage } from "@/modules/auth/pages/RegisterPage";
 
-export default function RegisterPage() {
-  return <AuthPage initialMode="register" />;
+export default function Page() {
+  return <RegisterPage />;
 }

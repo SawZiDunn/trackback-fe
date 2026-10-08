@@ -1,10 +1,5 @@
-import { Suspense } from "react";
-import { AuthPage } from "@/components/auth/AuthPage";
+import { ResetPasswordPage } from "@/modules/auth/pages/ResetPasswordPage";
 
-export default function ResetPasswordPage() {
-  return (
-    <Suspense fallback={null}>
-      <AuthPage initialMode="reset-password" />
-    </Suspense>
-  );
+export default function Page() {
+  return <ResetPasswordPage />;
 }

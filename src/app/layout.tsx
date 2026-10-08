@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { AuthProvider } from "@/context/AuthProvider";
+import type { ReactNode } from "react";
 import { QueryProvider } from "@/core/providers/QueryProvider";
 import "./globals.css";
 
@@ -16,13 +16,11 @@ export const viewport: Viewport = {
   themeColor: "#FFFFFF",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body className="bg-background text-foreground antialiased">
-        <QueryProvider>
-          <AuthProvider>{children}</AuthProvider>
-        </QueryProvider>
+        <QueryProvider>{children}</QueryProvider>
       </body>
     </html>
   );
