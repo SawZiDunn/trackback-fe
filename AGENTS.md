@@ -7,3 +7,5 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+For new agents reading this, if you're about to add new feature or new changes, read the `PROJECT_SETUP.md` file first to understand the project structure and how to add new features. The `README.md` file is a generic Next.js README and may not reflect the actual project structure or requirements.
+Also, Read @API_PATTERNS.md to understand how to add new API Fetching.
