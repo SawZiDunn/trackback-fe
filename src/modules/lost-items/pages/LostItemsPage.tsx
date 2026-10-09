@@ -20,20 +20,10 @@ import { Footer } from "@/common/components/Footer";
 import { Header } from "@/common/components/Header";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
 import { useLostItems, useRecoverLostItem } from "../api/lostItemApi";
+import { LOST_ITEM_CATEGORIES } from "../constants/categories";
 import type { LostItem, LostItemStatus, LostItemsFilters } from "../types/lostItem";
 
 const PAGE_SIZE = 8;
-
-const COMMON_CATEGORIES = [
-  "Bags & Backpacks",
-  "Books & Stationery",
-  "Clothing",
-  "Electronics",
-  "IDs & Cards",
-  "Keys & Access",
-  "Personal Items",
-  "Sports Equipment",
-];
 
 function formatDate(value: string) {
   const date = new Date(value);
@@ -256,7 +246,6 @@ export function LostItemsPage() {
   const items = lostItemsQuery.data?.items ?? [];
   const total = lostItemsQuery.data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const categories = [...new Set([...COMMON_CATEGORIES, ...items.map((item) => item.category)])].sort();
 
   const resetFilters = () => {
     setKeyword("");
@@ -348,7 +337,7 @@ export function LostItemsPage() {
                     className="w-full appearance-none rounded-lg bg-[#f4f5f7] px-3.5 py-3 pr-9 text-sm font-normal normal-case tracking-normal text-primary outline-none transition focus:ring-1 focus:ring-primary/25"
                   >
                     <option value="">All Categories</option>
-                    {categories.map((value) => (
+                    {LOST_ITEM_CATEGORIES.map((value) => (
                       <option key={value} value={value}>
                         {value}
                       </option>
