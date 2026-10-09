@@ -48,7 +48,7 @@ function LostItemCard({
 }) {
   return (
     <article className="group flex overflow-hidden rounded-xl border border-neutral/60 bg-white shadow-xs transition hover:-translate-y-0.5 hover:shadow-md">
-      <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#ececef]">
+      <div className="relative aspect-square w-[40%] shrink-0 overflow-hidden bg-[#ececef]">
         {item.photoUrl ? (
           <Image
             src={item.photoUrl}
@@ -71,7 +71,7 @@ function LostItemCard({
         </span>
       </div>
 
-      <div className="flex flex-1 flex-col p-4">
+      <div className="flex min-w-0 flex-1 flex-col p-4">
         <div className="mb-2 flex items-center justify-between gap-3">
           <span className="truncate text-[10px] font-semibold uppercase tracking-[0.12em] text-tertiary">
             {item.category}
@@ -464,7 +464,7 @@ export function LostItemsPage() {
               </button>
             </section>
           ) : (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {items.map((item) => (
                 <LostItemCard key={item.id} item={item} onView={setSelectedItem} />
               ))}
