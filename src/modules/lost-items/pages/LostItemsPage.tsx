@@ -726,7 +726,7 @@ export function LostItemsPage() {
             <label className="flex items-center gap-3 rounded-lg bg-[#f4f5f7] px-4 py-3 transition focus-within:bg-white focus-within:ring-1 focus-within:ring-primary/25">
               <Search aria-hidden="true" size={17} className="shrink-0 text-tertiary" />
               <input
-                type="search"
+                type="text"
                 value={keyword}
                 onChange={(event) => {
                   setKeyword(event.target.value);
