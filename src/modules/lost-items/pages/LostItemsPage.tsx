@@ -532,14 +532,6 @@ function ItemDetailsDialog({
             {item.description}
           </p>
           <div className="mt-6 flex flex-col-reverse gap-3 border-t border-neutral/60 pt-5 sm:flex-row sm:justify-between">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={isRecovering || isDeleting}
-              className="cursor-pointer rounded-lg border border-neutral/70 px-5 py-3 text-sm font-medium text-primary transition hover:bg-[#f4f5f7] disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              Close
-            </button>
             {isOwner && (
               <div className="flex flex-col gap-3 sm:flex-row">
                 {item.status === "OPEN" && (
@@ -552,19 +544,6 @@ function ItemDetailsDialog({
                     >
                       <Pencil aria-hidden="true" size={15} />
                       Edit item
-                    </button>
-                    <button
-                      type="button"
-                      onClick={onRecover}
-                      disabled={isRecovering || isDeleting}
-                      className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      {isRecovering ? (
-                        <LoaderCircle aria-hidden="true" size={16} className="animate-spin" />
-                      ) : (
-                        <Check aria-hidden="true" size={16} />
-                      )}
-                      Mark as recovered
                     </button>
                   </>
                 )}
@@ -581,6 +560,23 @@ function ItemDetailsDialog({
                   )}
                   {isDeleting ? "Deleting…" : "Delete item"}
                 </button>
+                {item.status === "OPEN" && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={onRecover}
+                      disabled={isRecovering || isDeleting}
+                      className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {isRecovering ? (
+                        <LoaderCircle aria-hidden="true" size={16} className="animate-spin" />
+                      ) : (
+                        <Check aria-hidden="true" size={16} />
+                      )}
+                      Mark as recovered
+                    </button>
+                  </>
+                )}
               </div>
             )}
           </div>
