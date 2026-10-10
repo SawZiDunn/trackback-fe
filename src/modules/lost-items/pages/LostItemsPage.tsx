@@ -3,7 +3,8 @@
 import axios from "axios";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { showToast } from "nextjs-toast-notify";
 import {
   ArrowLeft,
   ArrowRight,
@@ -13,16 +14,23 @@ import {
   ImagePlus,
   LoaderCircle,
   MapPin,
+  Pencil,
   Search,
   ShieldCheck,
+  UploadCloud,
   X,
 } from "lucide-react";
 import { Footer } from "@/common/components/Footer";
 import { Header } from "@/common/components/Header";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
-import { useLostItems, useRecoverLostItem } from "../api/lostItemApi";
+import { useLostItems, useRecoverLostItem, useUpdateLostItem } from "../api/lostItemApi";
 import { LOST_ITEM_CATEGORIES } from "../constants/categories";
-import type { LostItem, LostItemStatus, LostItemsFilters } from "../types/lostItem";
+import type {
+  LostItem,
+  LostItemStatus,
+  LostItemsFilters,
+  UpdateLostItemPayload,
+} from "../types/lostItem";
 
 const PAGE_SIZE = 8;
 
@@ -103,11 +111,261 @@ function LostItemCard({
   );
 }
 
+function EditLostItemDialog({
+  item,
+  isSaving,
+  error,
+  onClose,
+  onSubmit,
+}: {
+  item: LostItem;
+  isSaving: boolean;
+  error: string | null;
+  onClose: () => void;
+  onSubmit: (
+    payload: UpdateLostItemPayload,
+    image?: File,
+  ) => Promise<void>;
+}) {
+  const [image, setImage] = useState<File>();
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+  const [imageError, setImageError] = useState<string | null>(null);
+  const [removeImage, setRemoveImage] = useState(false);
+  const categories = LOST_ITEM_CATEGORIES.includes(
+    item.category as (typeof LOST_ITEM_CATEGORIES)[number],
+  )
+    ? LOST_ITEM_CATEGORIES
+    : [item.category, ...LOST_ITEM_CATEGORIES];
+
+  useEffect(
+    () => () => {
+      if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
+    },
+    [imagePreviewUrl],
+  );
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (imageError) return;
+    const values = new FormData(event.currentTarget);
+    await onSubmit({
+      title: String(values.get("title") ?? "").trim(),
+      category: String(values.get("category") ?? "").trim(),
+      description: String(values.get("description") ?? "").trim(),
+      lastSeenLocation: String(values.get("location") ?? "").trim(),
+      lastSeenDate: String(values.get("date") ?? ""),
+      ...(removeImage ? { photoUrl: null } : {}),
+    }, image);
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-[70] flex items-center justify-center overflow-y-auto bg-black/45 p-4 backdrop-blur-sm"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget && !isSaving) onClose();
+      }}
+    >
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="edit-lost-item-title"
+        className="my-auto w-full max-w-xl rounded-2xl border border-neutral/60 bg-white p-6 shadow-2xl sm:p-8"
+      >
+        <div className="mb-6 flex items-start justify-between gap-4">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-tertiary">
+              Update your listing
+            </p>
+            <h2 id="edit-lost-item-title" className="mt-1 text-2xl font-semibold tracking-tight">
+              Edit Lost Item
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-tertiary">
+              Changes are available while this lost-item report is open.
+            </p>
+          </div>
+          <button
+            type="button"
+            aria-label="Close edit form"
+            onClick={onClose}
+            disabled={isSaving}
+            className="rounded-full p-2 text-tertiary transition hover:bg-[#f4f5f7] hover:text-primary disabled:opacity-50"
+          >
+            <X aria-hidden="true" size={18} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <label className="block space-y-1.5 text-xs font-medium text-primary">
+            Item name
+            <input
+              name="title"
+              required
+              maxLength={120}
+              defaultValue={item.title}
+              className="w-full rounded-lg border border-neutral/70 bg-[#f4f5f7] px-3.5 py-3 text-sm outline-none transition focus:border-primary focus:bg-white"
+            />
+          </label>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block space-y-1.5 text-xs font-medium text-primary">
+              Category
+              <span className="relative block">
+                <select
+                  name="category"
+                  required
+                  defaultValue={item.category}
+                  className="w-full appearance-none rounded-lg border border-neutral/70 bg-[#f4f5f7] px-3.5 py-3 pr-9 text-sm outline-none transition focus:border-primary focus:bg-white"
+                >
+                  {categories.map((value) => (
+                    <option key={value} value={value}>{value}</option>
+                  ))}
+                </select>
+                <ChevronDown
+                  aria-hidden="true"
+                  size={15}
+                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-tertiary"
+                />
+              </span>
+            </label>
+            <label className="block space-y-1.5 text-xs font-medium text-primary">
+              Last seen date
+              <input
+                name="date"
+                type="date"
+                required
+                max={new Date().toISOString().slice(0, 10)}
+                defaultValue={item.lastSeenDate.slice(0, 10)}
+                className="w-full rounded-lg border border-neutral/70 bg-[#f4f5f7] px-3.5 py-3 text-sm outline-none transition focus:border-primary focus:bg-white"
+              />
+            </label>
+          </div>
+          <label className="block space-y-1.5 text-xs font-medium text-primary">
+            Last seen location
+            <input
+              name="location"
+              required
+              maxLength={160}
+              defaultValue={item.lastSeenLocation}
+              className="w-full rounded-lg border border-neutral/70 bg-[#f4f5f7] px-3.5 py-3 text-sm outline-none transition focus:border-primary focus:bg-white"
+            />
+          </label>
+          <label className="block space-y-1.5 text-xs font-medium text-primary">
+            Description
+            <textarea
+              name="description"
+              required
+              maxLength={1000}
+              rows={4}
+              defaultValue={item.description}
+              className="w-full resize-y rounded-lg border border-neutral/70 bg-[#f4f5f7] px-3.5 py-3 text-sm outline-none transition focus:border-primary focus:bg-white"
+            />
+          </label>
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-primary">Item image</p>
+            <label className="flex min-h-36 cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-neutral-400 bg-[#f4f5f7] p-4 text-center transition hover:border-primary hover:bg-[#f1f1f3]">
+              {imagePreviewUrl || (item.photoUrl && !removeImage && !image) ? (
+                <div className="relative h-32 w-full max-w-xs">
+                  <Image
+                    src={imagePreviewUrl ?? item.photoUrl!}
+                    alt="Lost item image preview"
+                    fill
+                    unoptimized
+                    className="rounded-lg object-contain"
+                  />
+                </div>
+              ) : (
+                <>
+                  <UploadCloud aria-hidden="true" size={24} className="mb-2 text-tertiary" />
+                  <span className="text-sm font-medium text-primary">
+                    {removeImage ? "Upload a replacement image" : "Choose an image"}
+                  </span>
+                  <span className="mt-1 text-xs text-tertiary">JPG, PNG, or WebP · Up to 5 MB</span>
+                </>
+              )}
+              <input
+                name="image"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                disabled={isSaving}
+                className="sr-only"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (!file) return;
+                  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+                    event.target.value = "";
+                    setImage(undefined);
+                    setImagePreviewUrl(null);
+                    setImageError("Choose a JPG, PNG, or WebP image.");
+                    return;
+                  }
+                  if (file.size > 5 * 1024 * 1024) {
+                    event.target.value = "";
+                    setImage(undefined);
+                    setImagePreviewUrl(null);
+                    setImageError("The image must be 5 MB or smaller.");
+                    return;
+                  }
+                  setImage(file);
+                  setRemoveImage(false);
+                  setImageError(null);
+                  setImagePreviewUrl(URL.createObjectURL(file));
+                }}
+              />
+            </label>
+            {imageError && <p role="alert" className="text-xs text-red-600">{imageError}</p>}
+            {(image || (item.photoUrl && !removeImage)) && (
+              <button
+                type="button"
+                disabled={isSaving}
+                onClick={() => {
+                  setImage(undefined);
+                  setImagePreviewUrl(null);
+                  setImageError(null);
+                  setRemoveImage(true);
+                }}
+                className="cursor-pointer text-xs font-medium text-tertiary underline underline-offset-4 transition hover:text-primary disabled:cursor-not-allowed"
+              >
+                Remove image
+              </button>
+            )}
+          </div>
+          {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
+          <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={isSaving}
+              className="rounded-lg border border-neutral/70 px-5 py-3 text-sm font-medium text-primary transition hover:bg-[#f4f5f7] disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSaving || Boolean(imageError)}
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isSaving ? (
+                <>
+                  <LoaderCircle aria-hidden="true" size={16} className="animate-spin" />
+                  Saving…
+                </>
+              ) : (
+                "Save Changes"
+              )}
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
+  );
+}
+
 function ItemDetailsDialog({
   item,
   isOwner,
   isRecovering,
   error,
+  onEdit,
   onClose,
   onRecover,
 }: {
@@ -115,6 +373,7 @@ function ItemDetailsDialog({
   isOwner: boolean;
   isRecovering: boolean;
   error: string | null;
+  onEdit: () => void;
   onClose: () => void;
   onRecover: () => void;
 }) {
@@ -190,19 +449,29 @@ function ItemDetailsDialog({
               Close
             </button>
             {isOwner && item.status === "OPEN" && (
-              <button
-                type="button"
-                onClick={onRecover}
-                disabled={isRecovering}
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-secondary disabled:opacity-60"
-              >
-                {isRecovering ? (
-                  <LoaderCircle aria-hidden="true" size={16} className="animate-spin" />
-                ) : (
-                  <Check aria-hidden="true" size={16} />
-                )}
-                Mark as recovered
-              </button>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={onEdit}
+                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-neutral/70 px-5 py-3 text-sm font-semibold text-primary transition hover:bg-[#f4f5f7]"
+                >
+                  <Pencil aria-hidden="true" size={15} />
+                  Edit item
+                </button>
+                <button
+                  type="button"
+                  onClick={onRecover}
+                  disabled={isRecovering}
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-secondary disabled:opacity-60"
+                >
+                  {isRecovering ? (
+                    <LoaderCircle aria-hidden="true" size={16} className="animate-spin" />
+                  ) : (
+                    <Check aria-hidden="true" size={16} />
+                  )}
+                  Mark as recovered
+                </button>
+              </div>
             )}
           </div>
           {error && (
@@ -226,6 +495,8 @@ export function LostItemsPage() {
   const [page, setPage] = useState(1);
   const [selectedItem, setSelectedItem] = useState<LostItem | null>(null);
   const [recoverError, setRecoverError] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => setDebouncedKeyword(keyword.trim()), 300);
@@ -243,6 +514,7 @@ export function LostItemsPage() {
   );
   const lostItemsQuery = useLostItems(page, filters);
   const recoverLostItem = useRecoverLostItem();
+  const updateLostItem = useUpdateLostItem();
 
   const items = lostItemsQuery.data?.items ?? [];
   const total = lostItemsQuery.data?.total ?? 0;
@@ -265,6 +537,23 @@ export function LostItemsPage() {
       setPage(1);
     } catch (error) {
       setRecoverError(getErrorMessage(error));
+    }
+  };
+
+  const handleUpdate = async (payload: UpdateLostItemPayload, image?: File) => {
+    if (!selectedItem) return;
+    setEditError(null);
+    try {
+      const updatedItem = await updateLostItem.mutateAsync({
+        itemId: selectedItem.id,
+        payload,
+        image,
+      });
+      setSelectedItem(updatedItem);
+      setIsEditing(false);
+      showToast.success("Lost item report updated successfully.");
+    } catch (error) {
+      setEditError(getErrorMessage(error));
     }
   };
 
@@ -538,19 +827,38 @@ export function LostItemsPage() {
       </main>
       <Footer />
 
-      {selectedItem && (
+      {selectedItem && !isEditing && (
         <ItemDetailsDialog
           item={selectedItem}
           isOwner={Boolean(user?.id && selectedItem.userId === user.id)}
           isRecovering={recoverLostItem.isPending}
           error={recoverError}
+          onEdit={() => {
+            setEditError(null);
+            setIsEditing(true);
+          }}
           onClose={() => {
             if (!recoverLostItem.isPending) {
               setSelectedItem(null);
               setRecoverError(null);
+              setEditError(null);
             }
           }}
           onRecover={() => void handleRecover()}
+        />
+      )}
+      {selectedItem && isEditing && (
+        <EditLostItemDialog
+          item={selectedItem}
+          isSaving={updateLostItem.isPending}
+          error={editError}
+          onClose={() => {
+            if (!updateLostItem.isPending) {
+              setIsEditing(false);
+              setEditError(null);
+            }
+          }}
+          onSubmit={handleUpdate}
         />
       )}
     </div>

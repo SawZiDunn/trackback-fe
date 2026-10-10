@@ -5,6 +5,8 @@ import type {
   CreateLostItemResponse,
   LostItemsFilters,
   LostItemsResult,
+  LostItem,
+  UpdateLostItemPayload,
   UploadedImagesResponse,
 } from "../types/lostItem";
 
@@ -79,6 +81,47 @@ export function useRecoverLostItem() {
     onSuccess: (_result, itemId) => {
       queryClient.invalidateQueries({ queryKey: LOST_ITEMS_QUERY_KEY });
       queryClient.invalidateQueries({ queryKey: [...LOST_ITEMS_QUERY_KEY, itemId] });
+    },
+  });
+}
+
+export function useUpdateLostItem() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      itemId,
+      payload,
+      image,
+    }: {
+      itemId: string;
+      payload: UpdateLostItemPayload;
+      image?: File;
+    }): Promise<LostItem> => {
+      let photoUrl = payload.photoUrl;
+      if (image) {
+        const formData = new FormData();
+        formData.append("image", image);
+        const uploadResponse = await apiClient.post<UploadedImagesResponse>(
+          "/media/image",
+          formData,
+          { headers: { "Content-Type": "multipart/form-data" } },
+        );
+        photoUrl = uploadResponse.data.data[0]?.url;
+        if (!photoUrl) {
+          throw new Error("The image upload did not return an image URL.");
+        }
+      }
+
+      const response = await apiClient.patch<LostItem>(`/lost-items/${itemId}`, {
+        ...payload,
+        ...(photoUrl !== undefined ? { photoUrl } : {}),
+      });
+      return response.data;
+    },
+    onSuccess: (_item, variables) => {
+      queryClient.invalidateQueries({ queryKey: LOST_ITEMS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: [...LOST_ITEMS_QUERY_KEY, variables.itemId] });
     },
   });
 }

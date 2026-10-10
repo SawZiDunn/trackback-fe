@@ -36,6 +36,15 @@ export interface CreateLostItemPayload {
   photoUrl?: string;
 }
 
+export interface UpdateLostItemPayload {
+  title: string;
+  description: string;
+  category: string;
+  lastSeenLocation: string;
+  lastSeenDate: string;
+  photoUrl?: string | null;
+}
+
 export interface CreateLostItemResponse {
   data: LostItem;
   message: string;
