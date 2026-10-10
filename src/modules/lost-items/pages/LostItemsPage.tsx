@@ -47,6 +47,13 @@ function formatDate(value: string) {
     : date.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
 }
 
+function localDateValue() {
+  const today = new Date();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+  return `${today.getFullYear()}-${month}-${day}`;
+}
+
 function getErrorMessage(error: unknown) {
   if (axios.isAxiosError<{ message?: string }>(error)) {
     return error.response?.data?.message ?? error.message;
@@ -239,7 +246,7 @@ function EditLostItemDialog({
                 name="date"
                 type="date"
                 required
-                max={new Date().toISOString().slice(0, 10)}
+                max={localDateValue()}
                 defaultValue={item.lastSeenDate.slice(0, 10)}
                 className="w-full rounded-lg border border-neutral/70 bg-[#f4f5f7] px-3.5 py-3 text-sm outline-none transition focus:border-primary focus:bg-white"
               />
