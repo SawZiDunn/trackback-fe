@@ -366,13 +366,92 @@ function EditLostItemDialog({
   );
 }
 
+function ConfirmDeleteLostItemDialog({
+  item,
+  isDeleting,
+  error,
+  onCancel,
+  onConfirm,
+}: {
+  item: LostItem;
+  isDeleting: boolean;
+  error: string | null;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget && !isDeleting) onCancel();
+      }}
+    >
+      <section
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="delete-lost-item-title"
+        aria-describedby="delete-lost-item-description"
+        className="w-full max-w-md rounded-2xl border border-neutral/60 bg-white p-6 shadow-2xl sm:p-7"
+      >
+        <div className="flex items-start gap-4">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-700">
+            <Trash2 aria-hidden="true" size={20} />
+          </span>
+          <div>
+            <h2 id="delete-lost-item-title" className="text-lg font-semibold text-primary">
+              Delete this lost item?
+            </h2>
+            <p id="delete-lost-item-description" className="mt-2 text-sm leading-6 text-tertiary">
+              This will permanently delete <span className="font-semibold text-primary">{item.title}</span>.
+              This action cannot be undone.
+            </p>
+          </div>
+        </div>
+        {error && (
+          <p role="alert" className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
+          </p>
+        )}
+        <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={isDeleting}
+            className="cursor-pointer rounded-lg border border-neutral/70 px-5 py-3 text-sm font-medium text-primary transition hover:bg-[#f4f5f7] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={isDeleting}
+            className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-red-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isDeleting ? (
+              <>
+                <LoaderCircle aria-hidden="true" size={16} className="animate-spin" />
+                Deleting…
+              </>
+            ) : (
+              <>
+                <Trash2 aria-hidden="true" size={15} />
+                Delete item
+              </>
+            )}
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
 function ItemDetailsDialog({
   item,
   isOwner,
   isRecovering,
   isDeleting,
   recoverError,
-  deleteError,
   onEdit,
   onClose,
   onRecover,
@@ -383,7 +462,6 @@ function ItemDetailsDialog({
   isRecovering: boolean;
   isDeleting: boolean;
   recoverError: string | null;
-  deleteError: string | null;
   onEdit: () => void;
   onClose: () => void;
   onRecover: () => void;
@@ -506,12 +584,7 @@ function ItemDetailsDialog({
               </div>
             )}
           </div>
-          {(recoverError || deleteError) && (
-            <div className="mt-3 space-y-1">
-              {recoverError && <p className="text-sm text-red-600" role="alert">{recoverError}</p>}
-              {deleteError && <p className="text-sm text-red-600" role="alert">{deleteError}</p>}
-            </div>
-          )}
+          {recoverError && <p className="mt-3 text-sm text-red-600" role="alert">{recoverError}</p>}
         </div>
       </section>
     </div>
@@ -529,6 +602,7 @@ export function LostItemsPage() {
   const [selectedItem, setSelectedItem] = useState<LostItem | null>(null);
   const [recoverError, setRecoverError] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
 
@@ -578,11 +652,11 @@ export function LostItemsPage() {
 
   const handleDelete = async () => {
     if (!selectedItem || selectedItem.userId !== user?.id) return;
-    if (!window.confirm(`Delete "${selectedItem.title}"? This action cannot be undone.`)) return;
 
     setDeleteError(null);
     try {
       await deleteLostItem.mutateAsync(selectedItem.id);
+      setIsConfirmingDelete(false);
       setSelectedItem(null);
       setRecoverError(null);
       showToast.success("Lost item deleted successfully.");
@@ -885,7 +959,6 @@ export function LostItemsPage() {
           isRecovering={recoverLostItem.isPending}
           isDeleting={deleteLostItem.isPending}
           recoverError={recoverError}
-          deleteError={deleteError}
           onEdit={() => {
             setEditError(null);
             setIsEditing(true);
@@ -895,11 +968,29 @@ export function LostItemsPage() {
               setSelectedItem(null);
               setRecoverError(null);
               setDeleteError(null);
+              setIsConfirmingDelete(false);
               setEditError(null);
             }
           }}
           onRecover={() => void handleRecover()}
-          onDelete={() => void handleDelete()}
+          onDelete={() => {
+            setDeleteError(null);
+            setIsConfirmingDelete(true);
+          }}
+        />
+      )}
+      {selectedItem && isConfirmingDelete && (
+        <ConfirmDeleteLostItemDialog
+          item={selectedItem}
+          isDeleting={deleteLostItem.isPending}
+          error={deleteError}
+          onCancel={() => {
+            if (!deleteLostItem.isPending) {
+              setIsConfirmingDelete(false);
+              setDeleteError(null);
+            }
+          }}
+          onConfirm={() => void handleDelete()}
         />
       )}
       {selectedItem && isEditing && (
