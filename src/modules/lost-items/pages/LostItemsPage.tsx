@@ -538,9 +538,9 @@ function ItemDetailsDialog({
           <p className="mt-5 whitespace-pre-wrap text-sm leading-6 text-neutral-700">
             {item.description}
           </p>
-          <div className="mt-6 flex flex-col-reverse gap-3 border-t border-neutral/60 pt-5 sm:flex-row sm:justify-between">
+          <div className="mt-6 flex flex-col-reverse gap-3 border-t border-neutral/60 pt-5 sm:flex-row sm:justify-end">
             {isOwner && (
-              <div className="flex flex-col gap-3 sm:flex-1 sm:flex-row sm:justify-evenly">
+              <div className="flex flex-col gap-3 sm:flex-1 sm:flex-row sm:justify-end">
                 {item.status === "OPEN" && (
                   <>
                     <button
