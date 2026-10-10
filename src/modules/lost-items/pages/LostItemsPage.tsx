@@ -535,6 +535,7 @@ export function LostItemsPage() {
       await recoverLostItem.mutateAsync(selectedItem.id);
       setSelectedItem({ ...selectedItem, status: "RECOVERED" });
       setPage(1);
+      showToast.success("Lost item marked as recovered.");
     } catch (error) {
       setRecoverError(getErrorMessage(error));
     }
