@@ -2,7 +2,9 @@
 
 import axios from "axios";
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { showToast } from "nextjs-toast-notify";
 import {
   ArrowLeft,
   ArrowRight,
@@ -12,16 +14,29 @@ import {
   ImagePlus,
   LoaderCircle,
   MapPin,
+  Pencil,
   Search,
   ShieldCheck,
+  Trash2,
+  UploadCloud,
   X,
 } from "lucide-react";
 import { Footer } from "@/common/components/Footer";
 import { Header } from "@/common/components/Header";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
-import { useLostItems, useRecoverLostItem } from "../api/lostItemApi";
+import {
+  useDeleteLostItem,
+  useLostItems,
+  useRecoverLostItem,
+  useUpdateLostItem,
+} from "../api/lostItemApi";
 import { LOST_ITEM_CATEGORIES } from "../constants/categories";
-import type { LostItem, LostItemStatus, LostItemsFilters } from "../types/lostItem";
+import type {
+  LostItem,
+  LostItemStatus,
+  LostItemsFilters,
+  UpdateLostItemPayload,
+} from "../types/lostItem";
 
 const PAGE_SIZE = 8;
 
@@ -93,7 +108,7 @@ function LostItemCard({
         <button
           type="button"
           onClick={() => onView(item)}
-          className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#f4f5f7] px-4 py-2.5 text-xs font-semibold text-primary transition hover:bg-neutral"
+          className="mt-4 inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#f4f5f7] px-4 py-2.5 text-xs font-semibold text-primary transition hover:bg-neutral"
         >
           View Details <ArrowRight aria-hidden="true" size={14} />
         </button>
@@ -102,27 +117,362 @@ function LostItemCard({
   );
 }
 
+function EditLostItemDialog({
+  item,
+  isSaving,
+  error,
+  onClose,
+  onSubmit,
+}: {
+  item: LostItem;
+  isSaving: boolean;
+  error: string | null;
+  onClose: () => void;
+  onSubmit: (
+    payload: UpdateLostItemPayload,
+    image?: File,
+  ) => Promise<void>;
+}) {
+  const [image, setImage] = useState<File>();
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+  const [imageError, setImageError] = useState<string | null>(null);
+  const [removeImage, setRemoveImage] = useState(false);
+  const categories = LOST_ITEM_CATEGORIES.includes(
+    item.category as (typeof LOST_ITEM_CATEGORIES)[number],
+  )
+    ? LOST_ITEM_CATEGORIES
+    : [item.category, ...LOST_ITEM_CATEGORIES];
+
+  useEffect(
+    () => () => {
+      if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
+    },
+    [imagePreviewUrl],
+  );
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (imageError) return;
+    const values = new FormData(event.currentTarget);
+    await onSubmit({
+      title: String(values.get("title") ?? "").trim(),
+      category: String(values.get("category") ?? "").trim(),
+      description: String(values.get("description") ?? "").trim(),
+      lastSeenLocation: String(values.get("location") ?? "").trim(),
+      lastSeenDate: String(values.get("date") ?? ""),
+      ...(removeImage ? { photoUrl: null } : {}),
+    }, image);
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-[70] flex items-center justify-center overflow-y-auto bg-black/45 p-4 backdrop-blur-sm"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget && !isSaving) onClose();
+      }}
+    >
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="edit-lost-item-title"
+        className="my-auto w-full max-w-xl rounded-2xl border border-neutral/60 bg-white p-6 shadow-2xl sm:p-8"
+      >
+        <div className="mb-6 flex items-start justify-between gap-4">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-tertiary">
+              Update your listing
+            </p>
+            <h2 id="edit-lost-item-title" className="mt-1 text-2xl font-semibold tracking-tight">
+              Edit Lost Item
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-tertiary">
+              Changes are available while this lost-item report is open.
+            </p>
+          </div>
+          <button
+            type="button"
+            aria-label="Close edit form"
+            onClick={onClose}
+            disabled={isSaving}
+            className="cursor-pointer rounded-full p-2 text-tertiary transition hover:bg-[#f4f5f7] hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <X aria-hidden="true" size={18} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <label className="block space-y-1.5 text-xs font-medium text-primary">
+            Item name
+            <input
+              name="title"
+              required
+              maxLength={120}
+              defaultValue={item.title}
+              className="w-full rounded-lg border border-neutral/70 bg-[#f4f5f7] px-3.5 py-3 text-sm outline-none transition focus:border-primary focus:bg-white"
+            />
+          </label>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block space-y-1.5 text-xs font-medium text-primary">
+              Category
+              <span className="relative block">
+                <select
+                  name="category"
+                  required
+                  defaultValue={item.category}
+                  className="w-full appearance-none rounded-lg border border-neutral/70 bg-[#f4f5f7] px-3.5 py-3 pr-9 text-sm outline-none transition focus:border-primary focus:bg-white"
+                >
+                  {categories.map((value) => (
+                    <option key={value} value={value}>{value}</option>
+                  ))}
+                </select>
+                <ChevronDown
+                  aria-hidden="true"
+                  size={15}
+                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-tertiary"
+                />
+              </span>
+            </label>
+            <label className="block space-y-1.5 text-xs font-medium text-primary">
+              Last seen date
+              <input
+                name="date"
+                type="date"
+                required
+                max={new Date().toISOString().slice(0, 10)}
+                defaultValue={item.lastSeenDate.slice(0, 10)}
+                className="w-full rounded-lg border border-neutral/70 bg-[#f4f5f7] px-3.5 py-3 text-sm outline-none transition focus:border-primary focus:bg-white"
+              />
+            </label>
+          </div>
+          <label className="block space-y-1.5 text-xs font-medium text-primary">
+            Last seen location
+            <input
+              name="location"
+              required
+              maxLength={160}
+              defaultValue={item.lastSeenLocation}
+              className="w-full rounded-lg border border-neutral/70 bg-[#f4f5f7] px-3.5 py-3 text-sm outline-none transition focus:border-primary focus:bg-white"
+            />
+          </label>
+          <label className="block space-y-1.5 text-xs font-medium text-primary">
+            Description
+            <textarea
+              name="description"
+              required
+              maxLength={1000}
+              rows={4}
+              defaultValue={item.description}
+              className="w-full resize-y rounded-lg border border-neutral/70 bg-[#f4f5f7] px-3.5 py-3 text-sm outline-none transition focus:border-primary focus:bg-white"
+            />
+          </label>
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-primary">Item image</p>
+            <label className="flex min-h-36 cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-neutral-400 bg-[#f4f5f7] p-4 text-center transition hover:border-primary hover:bg-[#f1f1f3]">
+              {imagePreviewUrl || (item.photoUrl && !removeImage && !image) ? (
+                <div className="relative h-32 w-full max-w-xs">
+                  <Image
+                    src={imagePreviewUrl ?? item.photoUrl!}
+                    alt="Lost item image preview"
+                    fill
+                    unoptimized
+                    className="rounded-lg object-contain"
+                  />
+                </div>
+              ) : (
+                <>
+                  <UploadCloud aria-hidden="true" size={24} className="mb-2 text-tertiary" />
+                  <span className="text-sm font-medium text-primary">
+                    {removeImage ? "Upload a replacement image" : "Choose an image"}
+                  </span>
+                  <span className="mt-1 text-xs text-tertiary">JPG, PNG, or WebP · Up to 5 MB</span>
+                </>
+              )}
+              <input
+                name="image"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                disabled={isSaving}
+                className="sr-only"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (!file) return;
+                  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+                    event.target.value = "";
+                    setImage(undefined);
+                    setImagePreviewUrl(null);
+                    setImageError("Choose a JPG, PNG, or WebP image.");
+                    return;
+                  }
+                  if (file.size > 5 * 1024 * 1024) {
+                    event.target.value = "";
+                    setImage(undefined);
+                    setImagePreviewUrl(null);
+                    setImageError("The image must be 5 MB or smaller.");
+                    return;
+                  }
+                  setImage(file);
+                  setRemoveImage(false);
+                  setImageError(null);
+                  setImagePreviewUrl(URL.createObjectURL(file));
+                }}
+              />
+            </label>
+            {imageError && <p role="alert" className="text-xs text-red-600">{imageError}</p>}
+            {(image || (item.photoUrl && !removeImage)) && (
+              <button
+                type="button"
+                disabled={isSaving}
+                onClick={() => {
+                  setImage(undefined);
+                  setImagePreviewUrl(null);
+                  setImageError(null);
+                  setRemoveImage(true);
+                }}
+                className="cursor-pointer text-xs font-medium text-tertiary underline underline-offset-4 transition hover:text-primary disabled:cursor-not-allowed"
+              >
+                Remove image
+              </button>
+            )}
+          </div>
+          {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
+          <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={isSaving}
+              className="cursor-pointer rounded-lg border border-neutral/70 px-5 py-3 text-sm font-medium text-primary transition hover:bg-[#f4f5f7] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSaving || Boolean(imageError)}
+              className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isSaving ? (
+                <>
+                  <LoaderCircle aria-hidden="true" size={16} className="animate-spin" />
+                  Saving…
+                </>
+              ) : (
+                "Save Changes"
+              )}
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
+  );
+}
+
+function ConfirmDeleteLostItemDialog({
+  item,
+  isDeleting,
+  error,
+  onCancel,
+  onConfirm,
+}: {
+  item: LostItem;
+  isDeleting: boolean;
+  error: string | null;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget && !isDeleting) onCancel();
+      }}
+    >
+      <section
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="delete-lost-item-title"
+        aria-describedby="delete-lost-item-description"
+        className="w-full max-w-md rounded-2xl border border-neutral/60 bg-white p-6 shadow-2xl sm:p-7"
+      >
+        <div className="flex items-start gap-4">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-700">
+            <Trash2 aria-hidden="true" size={20} />
+          </span>
+          <div>
+            <h2 id="delete-lost-item-title" className="text-lg font-semibold text-primary">
+              Delete this lost item?
+            </h2>
+            <p id="delete-lost-item-description" className="mt-2 text-sm leading-6 text-tertiary">
+              This will permanently delete <span className="font-semibold text-primary">{item.title}</span>.
+              This action cannot be undone.
+            </p>
+          </div>
+        </div>
+        {error && (
+          <p role="alert" className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
+          </p>
+        )}
+        <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={isDeleting}
+            className="cursor-pointer rounded-lg border border-neutral/70 px-5 py-3 text-sm font-medium text-primary transition hover:bg-[#f4f5f7] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={isDeleting}
+            className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-red-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isDeleting ? (
+              <>
+                <LoaderCircle aria-hidden="true" size={16} className="animate-spin" />
+                Deleting…
+              </>
+            ) : (
+              <>
+                <Trash2 aria-hidden="true" size={15} />
+                Delete item
+              </>
+            )}
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
 function ItemDetailsDialog({
   item,
   isOwner,
   isRecovering,
-  error,
+  isDeleting,
+  recoverError,
+  onEdit,
   onClose,
   onRecover,
+  onDelete,
 }: {
   item: LostItem;
   isOwner: boolean;
   isRecovering: boolean;
-  error: string | null;
+  isDeleting: boolean;
+  recoverError: string | null;
+  onEdit: () => void;
   onClose: () => void;
   onRecover: () => void;
+  onDelete: () => void;
 }) {
   return (
     <div
       className="fixed inset-0 z-[60] flex items-center justify-center overflow-y-auto bg-black/45 p-4 backdrop-blur-sm"
       role="presentation"
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget && !isRecovering) onClose();
+        if (event.target === event.currentTarget && !isRecovering && !isDeleting) onClose();
       }}
     >
       <section
@@ -150,7 +500,8 @@ function ItemDetailsDialog({
             type="button"
             aria-label="Close item details"
             onClick={onClose}
-            className="absolute right-3 top-3 rounded-full bg-white/90 p-2 text-primary shadow-sm transition hover:bg-white"
+            disabled={isRecovering || isDeleting}
+            className="absolute right-3 top-3 cursor-pointer rounded-full bg-white/90 p-2 text-primary shadow-sm transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
           >
             <X aria-hidden="true" size={18} />
           </button>
@@ -184,31 +535,56 @@ function ItemDetailsDialog({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg border border-neutral/70 px-5 py-3 text-sm font-medium text-primary transition hover:bg-[#f4f5f7]"
+              disabled={isRecovering || isDeleting}
+              className="cursor-pointer rounded-lg border border-neutral/70 px-5 py-3 text-sm font-medium text-primary transition hover:bg-[#f4f5f7] disabled:cursor-not-allowed disabled:opacity-60"
             >
               Close
             </button>
-            {isOwner && item.status === "OPEN" && (
-              <button
-                type="button"
-                onClick={onRecover}
-                disabled={isRecovering}
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-secondary disabled:opacity-60"
-              >
-                {isRecovering ? (
-                  <LoaderCircle aria-hidden="true" size={16} className="animate-spin" />
-                ) : (
-                  <Check aria-hidden="true" size={16} />
+            {isOwner && (
+              <div className="flex flex-col gap-3 sm:flex-row">
+                {item.status === "OPEN" && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={onEdit}
+                      disabled={isRecovering || isDeleting}
+                      className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-neutral/70 px-5 py-3 text-sm font-semibold text-primary transition hover:bg-[#f4f5f7] disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      <Pencil aria-hidden="true" size={15} />
+                      Edit item
+                    </button>
+                    <button
+                      type="button"
+                      onClick={onRecover}
+                      disabled={isRecovering || isDeleting}
+                      className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {isRecovering ? (
+                        <LoaderCircle aria-hidden="true" size={16} className="animate-spin" />
+                      ) : (
+                        <Check aria-hidden="true" size={16} />
+                      )}
+                      Mark as recovered
+                    </button>
+                  </>
                 )}
-                Mark as recovered
-              </button>
+                <button
+                  type="button"
+                  onClick={onDelete}
+                  disabled={isRecovering || isDeleting}
+                  className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-red-200 px-5 py-3 text-sm font-semibold text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isDeleting ? (
+                    <LoaderCircle aria-hidden="true" size={16} className="animate-spin" />
+                  ) : (
+                    <Trash2 aria-hidden="true" size={15} />
+                  )}
+                  {isDeleting ? "Deleting…" : "Delete item"}
+                </button>
+              </div>
             )}
           </div>
-          {error && (
-            <p className="mt-3 text-sm text-red-600" role="alert">
-              {error}
-            </p>
-          )}
+          {recoverError && <p className="mt-3 text-sm text-red-600" role="alert">{recoverError}</p>}
         </div>
       </section>
     </div>
@@ -225,6 +601,10 @@ export function LostItemsPage() {
   const [page, setPage] = useState(1);
   const [selectedItem, setSelectedItem] = useState<LostItem | null>(null);
   const [recoverError, setRecoverError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => setDebouncedKeyword(keyword.trim()), 300);
@@ -242,6 +622,8 @@ export function LostItemsPage() {
   );
   const lostItemsQuery = useLostItems(page, filters);
   const recoverLostItem = useRecoverLostItem();
+  const deleteLostItem = useDeleteLostItem();
+  const updateLostItem = useUpdateLostItem();
 
   const items = lostItemsQuery.data?.items ?? [];
   const total = lostItemsQuery.data?.total ?? 0;
@@ -262,8 +644,41 @@ export function LostItemsPage() {
       await recoverLostItem.mutateAsync(selectedItem.id);
       setSelectedItem({ ...selectedItem, status: "RECOVERED" });
       setPage(1);
+      showToast.success("Lost item marked as recovered.");
     } catch (error) {
       setRecoverError(getErrorMessage(error));
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!selectedItem || selectedItem.userId !== user?.id) return;
+
+    setDeleteError(null);
+    try {
+      await deleteLostItem.mutateAsync(selectedItem.id);
+      setIsConfirmingDelete(false);
+      setSelectedItem(null);
+      setRecoverError(null);
+      showToast.success("Lost item deleted successfully.");
+    } catch (error) {
+      setDeleteError(getErrorMessage(error));
+    }
+  };
+
+  const handleUpdate = async (payload: UpdateLostItemPayload, image?: File) => {
+    if (!selectedItem) return;
+    setEditError(null);
+    try {
+      const updatedItem = await updateLostItem.mutateAsync({
+        itemId: selectedItem.id,
+        payload,
+        image,
+      });
+      setSelectedItem(updatedItem);
+      setIsEditing(false);
+      showToast.success("Lost item report updated successfully.");
+    } catch (error) {
+      setEditError(getErrorMessage(error));
     }
   };
 
@@ -273,7 +688,8 @@ export function LostItemsPage() {
       <main className="flex-1 py-6 sm:py-8">
         <div className="mx-auto max-w-7xl space-y-5 px-4 sm:px-6 lg:px-8">
           <section className="rounded-2xl border border-neutral/60 bg-white p-6 shadow-xs sm:p-8">
-            <div>
+            <div className="flex flex-col items-start justify-between gap-5 sm:flex-row sm:items-center">
+              <div>
               <div className="mb-3 flex flex-wrap items-center gap-2 font-mono text-[11px] text-tertiary">
                 <span className="rounded bg-[#f1f1f3] px-2 py-1 font-semibold tracking-wide">
                   DIRECTORY // SECTION 02
@@ -289,6 +705,14 @@ export function LostItemsPage() {
                 Browse items reported missing across campus. If you have found one, help return it
                 or report a match.
               </p>
+              </div>
+              <Link
+                href="/lost-items/report"
+                className="inline-flex shrink-0 cursor-pointer items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-white/85! shadow-sm transition hover:bg-secondary"
+              >
+                <span aria-hidden="true" className="text-lg leading-none">+</span>
+                Report New Lost Item
+              </Link>
             </div>
           </section>
 
@@ -314,7 +738,7 @@ export function LostItemsPage() {
                   type="button"
                   aria-label="Clear search"
                   onClick={() => setKeyword("")}
-                  className="rounded p-1 text-tertiary hover:bg-neutral/60 hover:text-primary"
+                  className="cursor-pointer rounded p-1 text-tertiary hover:bg-neutral/60 hover:text-primary"
                 >
                   <X aria-hidden="true" size={15} />
                 </button>
@@ -410,7 +834,7 @@ export function LostItemsPage() {
                   <button
                     type="button"
                     onClick={resetFilters}
-                    className="px-2 py-1 text-[11px] font-medium text-tertiary underline underline-offset-4 transition hover:text-primary"
+                    className="cursor-pointer px-2 py-1 text-[11px] font-medium text-tertiary underline underline-offset-4 transition hover:text-primary"
                   >
                     Reset parameters
                   </button>
@@ -441,7 +865,7 @@ export function LostItemsPage() {
               <button
                 type="button"
                 onClick={() => void lostItemsQuery.refetch()}
-                className="mt-5 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-secondary"
+                className="mt-5 cursor-pointer rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-secondary"
               >
                 Try again
               </button>
@@ -458,7 +882,7 @@ export function LostItemsPage() {
               <button
                 type="button"
                 onClick={resetFilters}
-                className="mt-4 text-sm font-semibold text-primary underline underline-offset-4"
+                className="mt-4 cursor-pointer text-sm font-semibold text-primary underline underline-offset-4"
               >
                 Reset filters
               </button>
@@ -484,7 +908,7 @@ export function LostItemsPage() {
                 type="button"
                 onClick={() => setPage((current) => Math.max(1, current - 1))}
                 disabled={page <= 1 || lostItemsQuery.isFetching}
-                className="inline-flex items-center gap-1 rounded-md bg-[#f4f5f7] px-3 py-2 text-xs font-medium text-primary transition hover:bg-neutral disabled:cursor-not-allowed disabled:opacity-40"
+                className="inline-flex cursor-pointer items-center gap-1 rounded-md bg-[#f4f5f7] px-3 py-2 text-xs font-medium text-primary transition hover:bg-neutral disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <ArrowLeft aria-hidden="true" size={13} />
                 Previous
@@ -496,7 +920,7 @@ export function LostItemsPage() {
                 type="button"
                 onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
                 disabled={page >= totalPages || lostItemsQuery.isFetching}
-                className="inline-flex items-center gap-1 rounded-md bg-[#f4f5f7] px-3 py-2 text-xs font-medium text-primary transition hover:bg-neutral disabled:cursor-not-allowed disabled:opacity-40"
+                className="inline-flex cursor-pointer items-center gap-1 rounded-md bg-[#f4f5f7] px-3 py-2 text-xs font-medium text-primary transition hover:bg-neutral disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Next
                 <ArrowRight aria-hidden="true" size={13} />
@@ -528,19 +952,59 @@ export function LostItemsPage() {
       </main>
       <Footer />
 
-      {selectedItem && (
+      {selectedItem && !isEditing && (
         <ItemDetailsDialog
           item={selectedItem}
           isOwner={Boolean(user?.id && selectedItem.userId === user.id)}
           isRecovering={recoverLostItem.isPending}
-          error={recoverError}
+          isDeleting={deleteLostItem.isPending}
+          recoverError={recoverError}
+          onEdit={() => {
+            setEditError(null);
+            setIsEditing(true);
+          }}
           onClose={() => {
-            if (!recoverLostItem.isPending) {
+            if (!recoverLostItem.isPending && !deleteLostItem.isPending) {
               setSelectedItem(null);
               setRecoverError(null);
+              setDeleteError(null);
+              setIsConfirmingDelete(false);
+              setEditError(null);
             }
           }}
           onRecover={() => void handleRecover()}
+          onDelete={() => {
+            setDeleteError(null);
+            setIsConfirmingDelete(true);
+          }}
+        />
+      )}
+      {selectedItem && isConfirmingDelete && (
+        <ConfirmDeleteLostItemDialog
+          item={selectedItem}
+          isDeleting={deleteLostItem.isPending}
+          error={deleteError}
+          onCancel={() => {
+            if (!deleteLostItem.isPending) {
+              setIsConfirmingDelete(false);
+              setDeleteError(null);
+            }
+          }}
+          onConfirm={() => void handleDelete()}
+        />
+      )}
+      {selectedItem && isEditing && (
+        <EditLostItemDialog
+          item={selectedItem}
+          isSaving={updateLostItem.isPending}
+          error={editError}
+          onClose={() => {
+            if (!updateLostItem.isPending) {
+              setIsEditing(false);
+              setEditError(null);
+            }
+          }}
+          onSubmit={handleUpdate}
         />
       )}
     </div>
