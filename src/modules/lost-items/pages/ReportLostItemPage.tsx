@@ -2,6 +2,7 @@
 
 import axios from "axios";
 import Image from "next/image";
+import { showToast } from "nextjs-toast-notify";
 import {
   ArrowLeft,
   CalendarDays,
@@ -129,7 +130,13 @@ export function ReportLostItemPage() {
     };
 
     try {
-      await createLostItem.mutateAsync({ payload, image });
+      const result = await createLostItem.mutateAsync({ payload, image });
+      showToast.success(result.message || "Lost item reported successfully", {
+        duration: 4000,
+        progress: true,
+        position: "top-right",
+        transition: "bounceIn",
+      });
       router.push("/lost-items");
     } catch (error) {
       setFormError(getErrorMessage(error));
