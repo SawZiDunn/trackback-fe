@@ -29,6 +29,19 @@ export interface FoundItemsResult {
   page: number;
 }
 
+export interface CreateFoundItemPayload {
+  title: string;
+  description: string;
+  category: string;
+  foundLocation: string;
+  foundDate: string;
+}
+
+export interface CreateFoundItemResponse {
+  data: FoundItem;
+  message: string;
+}
+
 export interface UpdateFoundItemPayload {
   title?: string;
   description?: string;

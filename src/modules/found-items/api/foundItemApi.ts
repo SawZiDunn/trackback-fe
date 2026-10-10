@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/core/api/client";
 import type {
+  CreateFoundItemPayload,
+  CreateFoundItemResponse,
   FoundItem,
   FoundItemsFilters,
   FoundItemsResult,
@@ -23,6 +25,45 @@ export function useFoundItems(page: number, filters: FoundItemsFilters) {
         },
       });
       return response.data;
+    },
+  });
+}
+
+export function useCreateFoundItem() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      payload,
+      image,
+    }: {
+      payload: CreateFoundItemPayload;
+      image?: File;
+    }): Promise<CreateFoundItemResponse> => {
+      let photoUrl: string | undefined;
+
+      if (image) {
+        const formData = new FormData();
+        formData.append("image", image);
+        const uploadResponse = await apiClient.post<UploadedImagesResponse>(
+          "/media/image",
+          formData,
+          { headers: { "Content-Type": "multipart/form-data" } },
+        );
+        photoUrl = uploadResponse.data.data[0]?.url;
+        if (!photoUrl) {
+          throw new Error("The image upload did not return an image URL.");
+        }
+      }
+
+      const response = await apiClient.post<CreateFoundItemResponse>("/found-items", {
+        ...payload,
+        ...(photoUrl ? { photoUrl } : {}),
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: FOUND_ITEMS_QUERY_KEY });
     },
   });
 }

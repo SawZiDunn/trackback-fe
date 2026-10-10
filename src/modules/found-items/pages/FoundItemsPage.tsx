@@ -2,6 +2,7 @@
 
 import axios from "axios";
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { showToast } from "nextjs-toast-notify";
 import {
@@ -651,18 +652,29 @@ export function FoundItemsPage() {
       <main className="flex-1 py-6 sm:py-8">
         <div className="mx-auto max-w-7xl space-y-5 px-4 sm:px-6 lg:px-8">
           <section className="rounded-2xl border border-neutral/60 bg-white p-6 shadow-xs sm:p-8">
-            <div className="mb-3 flex flex-wrap items-center gap-2 font-mono text-[11px] text-tertiary">
-              <span className="rounded bg-[#f1f1f3] px-2 py-1 font-semibold tracking-wide">
-                DIRECTORY // FOUND ITEMS
-              </span>
-              <span>{total} {status === "OPEN" ? "Open Listings" : "Found Items"}</span>
+            <div className="flex flex-col items-start justify-between gap-5 sm:flex-row sm:items-center">
+              <div>
+                <div className="mb-3 flex flex-wrap items-center gap-2 font-mono text-[11px] text-tertiary">
+                  <span className="rounded bg-[#f1f1f3] px-2 py-1 font-semibold tracking-wide">
+                    DIRECTORY // FOUND ITEMS
+                  </span>
+                  <span>{total} {status === "OPEN" ? "Open Listings" : "Found Items"}</span>
+                </div>
+                <h1 className="text-3xl font-semibold tracking-[-0.05em] text-primary sm:text-4xl">
+                  Found Items Directory
+                </h1>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-tertiary sm:text-base">
+                  Browse items found across campus. Check the details and use the claim action if an item belongs to you.
+                </p>
+              </div>
+              <Link
+                href="/found-items/report"
+                className="inline-flex shrink-0 cursor-pointer items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-white/85! shadow-sm transition hover:bg-secondary"
+              >
+                <span aria-hidden="true" className="text-lg leading-none">+</span>
+                Report New Found Item
+              </Link>
             </div>
-            <h1 className="text-3xl font-semibold tracking-[-0.05em] text-primary sm:text-4xl">
-              Found Items Directory
-            </h1>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-tertiary sm:text-base">
-              Browse items found across campus. Check the details and use the claim action if an item belongs to you.
-            </p>
           </section>
 
           <section
