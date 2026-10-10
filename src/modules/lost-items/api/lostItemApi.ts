@@ -11,6 +11,7 @@ import type {
 } from "../types/lostItem";
 
 const LOST_ITEMS_QUERY_KEY = ["lost-items"];
+const MY_POSTS_QUERY_KEY = ["my-posts"];
 const PAGE_SIZE = 8;
 
 export function useLostItems(page: number, filters: LostItemsFilters) {
@@ -64,6 +65,7 @@ export function useCreateLostItem() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: LOST_ITEMS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: MY_POSTS_QUERY_KEY });
     },
   });
 }
@@ -80,6 +82,7 @@ export function useRecoverLostItem() {
     },
     onSuccess: (_result, itemId) => {
       queryClient.invalidateQueries({ queryKey: LOST_ITEMS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: MY_POSTS_QUERY_KEY });
       queryClient.invalidateQueries({ queryKey: [...LOST_ITEMS_QUERY_KEY, itemId] });
     },
   });
@@ -95,6 +98,7 @@ export function useDeleteLostItem() {
     },
     onSuccess: (_result, itemId) => {
       queryClient.invalidateQueries({ queryKey: LOST_ITEMS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: MY_POSTS_QUERY_KEY });
       queryClient.removeQueries({ queryKey: [...LOST_ITEMS_QUERY_KEY, itemId] });
     },
   });
@@ -136,6 +140,7 @@ export function useUpdateLostItem() {
     },
     onSuccess: (_item, variables) => {
       queryClient.invalidateQueries({ queryKey: LOST_ITEMS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: MY_POSTS_QUERY_KEY });
       queryClient.invalidateQueries({ queryKey: [...LOST_ITEMS_QUERY_KEY, variables.itemId] });
     },
   });

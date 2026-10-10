@@ -11,6 +11,7 @@ import type {
 } from "../types/foundItem";
 
 const FOUND_ITEMS_QUERY_KEY = ["found-items"];
+const MY_POSTS_QUERY_KEY = ["my-posts"];
 const PAGE_SIZE = 8;
 
 export function useFoundItems(page: number, filters: FoundItemsFilters) {
@@ -64,6 +65,7 @@ export function useCreateFoundItem() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: FOUND_ITEMS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: MY_POSTS_QUERY_KEY });
     },
   });
 }
@@ -104,6 +106,7 @@ export function useUpdateFoundItem() {
     },
     onSuccess: (_item, variables) => {
       queryClient.invalidateQueries({ queryKey: FOUND_ITEMS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: MY_POSTS_QUERY_KEY });
       queryClient.invalidateQueries({ queryKey: [...FOUND_ITEMS_QUERY_KEY, variables.itemId] });
     },
   });
@@ -119,6 +122,7 @@ export function useDeleteFoundItem() {
     },
     onSuccess: (_result, itemId) => {
       queryClient.invalidateQueries({ queryKey: FOUND_ITEMS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: MY_POSTS_QUERY_KEY });
       queryClient.removeQueries({ queryKey: [...FOUND_ITEMS_QUERY_KEY, itemId] });
     },
   });
