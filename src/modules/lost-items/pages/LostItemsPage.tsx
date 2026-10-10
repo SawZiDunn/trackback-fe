@@ -102,7 +102,7 @@ function LostItemCard({
         <button
           type="button"
           onClick={() => onView(item)}
-          className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#f4f5f7] px-4 py-2.5 text-xs font-semibold text-primary transition hover:bg-neutral"
+          className="mt-4 inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#f4f5f7] px-4 py-2.5 text-xs font-semibold text-primary transition hover:bg-neutral"
         >
           View Details <ArrowRight aria-hidden="true" size={14} />
         </button>
@@ -189,7 +189,7 @@ function EditLostItemDialog({
             aria-label="Close edit form"
             onClick={onClose}
             disabled={isSaving}
-            className="rounded-full p-2 text-tertiary transition hover:bg-[#f4f5f7] hover:text-primary disabled:opacity-50"
+            className="cursor-pointer rounded-full p-2 text-tertiary transition hover:bg-[#f4f5f7] hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
           >
             <X aria-hidden="true" size={18} />
           </button>
@@ -335,14 +335,14 @@ function EditLostItemDialog({
               type="button"
               onClick={onClose}
               disabled={isSaving}
-              className="rounded-lg border border-neutral/70 px-5 py-3 text-sm font-medium text-primary transition hover:bg-[#f4f5f7] disabled:opacity-50"
+              className="cursor-pointer rounded-lg border border-neutral/70 px-5 py-3 text-sm font-medium text-primary transition hover:bg-[#f4f5f7] disabled:cursor-not-allowed disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSaving || Boolean(imageError)}
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSaving ? (
                 <>
@@ -410,7 +410,7 @@ function ItemDetailsDialog({
             type="button"
             aria-label="Close item details"
             onClick={onClose}
-            className="absolute right-3 top-3 rounded-full bg-white/90 p-2 text-primary shadow-sm transition hover:bg-white"
+            className="absolute right-3 top-3 cursor-pointer rounded-full bg-white/90 p-2 text-primary shadow-sm transition hover:bg-white"
           >
             <X aria-hidden="true" size={18} />
           </button>
@@ -444,7 +444,7 @@ function ItemDetailsDialog({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg border border-neutral/70 px-5 py-3 text-sm font-medium text-primary transition hover:bg-[#f4f5f7]"
+              className="cursor-pointer rounded-lg border border-neutral/70 px-5 py-3 text-sm font-medium text-primary transition hover:bg-[#f4f5f7]"
             >
               Close
             </button>
@@ -453,7 +453,7 @@ function ItemDetailsDialog({
                 <button
                   type="button"
                   onClick={onEdit}
-                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-neutral/70 px-5 py-3 text-sm font-semibold text-primary transition hover:bg-[#f4f5f7]"
+                  className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-neutral/70 px-5 py-3 text-sm font-semibold text-primary transition hover:bg-[#f4f5f7]"
                 >
                   <Pencil aria-hidden="true" size={15} />
                   Edit item
@@ -462,7 +462,7 @@ function ItemDetailsDialog({
                   type="button"
                   onClick={onRecover}
                   disabled={isRecovering}
-                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-secondary disabled:opacity-60"
+                  className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isRecovering ? (
                     <LoaderCircle aria-hidden="true" size={16} className="animate-spin" />
@@ -613,7 +613,7 @@ export function LostItemsPage() {
                   type="button"
                   aria-label="Clear search"
                   onClick={() => setKeyword("")}
-                  className="rounded p-1 text-tertiary hover:bg-neutral/60 hover:text-primary"
+                  className="cursor-pointer rounded p-1 text-tertiary hover:bg-neutral/60 hover:text-primary"
                 >
                   <X aria-hidden="true" size={15} />
                 </button>
@@ -709,7 +709,7 @@ export function LostItemsPage() {
                   <button
                     type="button"
                     onClick={resetFilters}
-                    className="px-2 py-1 text-[11px] font-medium text-tertiary underline underline-offset-4 transition hover:text-primary"
+                    className="cursor-pointer px-2 py-1 text-[11px] font-medium text-tertiary underline underline-offset-4 transition hover:text-primary"
                   >
                     Reset parameters
                   </button>
@@ -740,7 +740,7 @@ export function LostItemsPage() {
               <button
                 type="button"
                 onClick={() => void lostItemsQuery.refetch()}
-                className="mt-5 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-secondary"
+                className="mt-5 cursor-pointer rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-secondary"
               >
                 Try again
               </button>
@@ -757,7 +757,7 @@ export function LostItemsPage() {
               <button
                 type="button"
                 onClick={resetFilters}
-                className="mt-4 text-sm font-semibold text-primary underline underline-offset-4"
+                className="mt-4 cursor-pointer text-sm font-semibold text-primary underline underline-offset-4"
               >
                 Reset filters
               </button>
@@ -783,7 +783,7 @@ export function LostItemsPage() {
                 type="button"
                 onClick={() => setPage((current) => Math.max(1, current - 1))}
                 disabled={page <= 1 || lostItemsQuery.isFetching}
-                className="inline-flex items-center gap-1 rounded-md bg-[#f4f5f7] px-3 py-2 text-xs font-medium text-primary transition hover:bg-neutral disabled:cursor-not-allowed disabled:opacity-40"
+                className="inline-flex cursor-pointer items-center gap-1 rounded-md bg-[#f4f5f7] px-3 py-2 text-xs font-medium text-primary transition hover:bg-neutral disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <ArrowLeft aria-hidden="true" size={13} />
                 Previous
@@ -795,7 +795,7 @@ export function LostItemsPage() {
                 type="button"
                 onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
                 disabled={page >= totalPages || lostItemsQuery.isFetching}
-                className="inline-flex items-center gap-1 rounded-md bg-[#f4f5f7] px-3 py-2 text-xs font-medium text-primary transition hover:bg-neutral disabled:cursor-not-allowed disabled:opacity-40"
+                className="inline-flex cursor-pointer items-center gap-1 rounded-md bg-[#f4f5f7] px-3 py-2 text-xs font-medium text-primary transition hover:bg-neutral disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Next
                 <ArrowRight aria-hidden="true" size={13} />
