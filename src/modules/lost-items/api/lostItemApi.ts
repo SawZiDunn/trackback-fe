@@ -85,6 +85,21 @@ export function useRecoverLostItem() {
   });
 }
 
+export function useDeleteLostItem() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (itemId: string): Promise<{ success: true }> => {
+      const response = await apiClient.delete<{ success: true }>(`/lost-items/${itemId}`);
+      return response.data;
+    },
+    onSuccess: (_result, itemId) => {
+      queryClient.invalidateQueries({ queryKey: LOST_ITEMS_QUERY_KEY });
+      queryClient.removeQueries({ queryKey: [...LOST_ITEMS_QUERY_KEY, itemId] });
+    },
+  });
+}
+
 export function useUpdateLostItem() {
   const queryClient = useQueryClient();
 

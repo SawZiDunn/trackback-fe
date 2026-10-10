@@ -17,13 +17,19 @@ import {
   Pencil,
   Search,
   ShieldCheck,
+  Trash2,
   UploadCloud,
   X,
 } from "lucide-react";
 import { Footer } from "@/common/components/Footer";
 import { Header } from "@/common/components/Header";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
-import { useLostItems, useRecoverLostItem, useUpdateLostItem } from "../api/lostItemApi";
+import {
+  useDeleteLostItem,
+  useLostItems,
+  useRecoverLostItem,
+  useUpdateLostItem,
+} from "../api/lostItemApi";
 import { LOST_ITEM_CATEGORIES } from "../constants/categories";
 import type {
   LostItem,
@@ -364,25 +370,31 @@ function ItemDetailsDialog({
   item,
   isOwner,
   isRecovering,
-  error,
+  isDeleting,
+  recoverError,
+  deleteError,
   onEdit,
   onClose,
   onRecover,
+  onDelete,
 }: {
   item: LostItem;
   isOwner: boolean;
   isRecovering: boolean;
-  error: string | null;
+  isDeleting: boolean;
+  recoverError: string | null;
+  deleteError: string | null;
   onEdit: () => void;
   onClose: () => void;
   onRecover: () => void;
+  onDelete: () => void;
 }) {
   return (
     <div
       className="fixed inset-0 z-[60] flex items-center justify-center overflow-y-auto bg-black/45 p-4 backdrop-blur-sm"
       role="presentation"
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget && !isRecovering) onClose();
+        if (event.target === event.currentTarget && !isRecovering && !isDeleting) onClose();
       }}
     >
       <section
@@ -410,7 +422,8 @@ function ItemDetailsDialog({
             type="button"
             aria-label="Close item details"
             onClick={onClose}
-            className="absolute right-3 top-3 cursor-pointer rounded-full bg-white/90 p-2 text-primary shadow-sm transition hover:bg-white"
+            disabled={isRecovering || isDeleting}
+            className="absolute right-3 top-3 cursor-pointer rounded-full bg-white/90 p-2 text-primary shadow-sm transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
           >
             <X aria-hidden="true" size={18} />
           </button>
@@ -444,40 +457,60 @@ function ItemDetailsDialog({
             <button
               type="button"
               onClick={onClose}
-              className="cursor-pointer rounded-lg border border-neutral/70 px-5 py-3 text-sm font-medium text-primary transition hover:bg-[#f4f5f7]"
+              disabled={isRecovering || isDeleting}
+              className="cursor-pointer rounded-lg border border-neutral/70 px-5 py-3 text-sm font-medium text-primary transition hover:bg-[#f4f5f7] disabled:cursor-not-allowed disabled:opacity-60"
             >
               Close
             </button>
-            {isOwner && item.status === "OPEN" && (
+            {isOwner && (
               <div className="flex flex-col gap-3 sm:flex-row">
+                {item.status === "OPEN" && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={onEdit}
+                      disabled={isRecovering || isDeleting}
+                      className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-neutral/70 px-5 py-3 text-sm font-semibold text-primary transition hover:bg-[#f4f5f7] disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      <Pencil aria-hidden="true" size={15} />
+                      Edit item
+                    </button>
+                    <button
+                      type="button"
+                      onClick={onRecover}
+                      disabled={isRecovering || isDeleting}
+                      className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {isRecovering ? (
+                        <LoaderCircle aria-hidden="true" size={16} className="animate-spin" />
+                      ) : (
+                        <Check aria-hidden="true" size={16} />
+                      )}
+                      Mark as recovered
+                    </button>
+                  </>
+                )}
                 <button
                   type="button"
-                  onClick={onEdit}
-                  className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-neutral/70 px-5 py-3 text-sm font-semibold text-primary transition hover:bg-[#f4f5f7]"
+                  onClick={onDelete}
+                  disabled={isRecovering || isDeleting}
+                  className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-red-200 px-5 py-3 text-sm font-semibold text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  <Pencil aria-hidden="true" size={15} />
-                  Edit item
-                </button>
-                <button
-                  type="button"
-                  onClick={onRecover}
-                  disabled={isRecovering}
-                  className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {isRecovering ? (
+                  {isDeleting ? (
                     <LoaderCircle aria-hidden="true" size={16} className="animate-spin" />
                   ) : (
-                    <Check aria-hidden="true" size={16} />
+                    <Trash2 aria-hidden="true" size={15} />
                   )}
-                  Mark as recovered
+                  {isDeleting ? "Deleting…" : "Delete item"}
                 </button>
               </div>
             )}
           </div>
-          {error && (
-            <p className="mt-3 text-sm text-red-600" role="alert">
-              {error}
-            </p>
+          {(recoverError || deleteError) && (
+            <div className="mt-3 space-y-1">
+              {recoverError && <p className="text-sm text-red-600" role="alert">{recoverError}</p>}
+              {deleteError && <p className="text-sm text-red-600" role="alert">{deleteError}</p>}
+            </div>
           )}
         </div>
       </section>
@@ -495,6 +528,7 @@ export function LostItemsPage() {
   const [page, setPage] = useState(1);
   const [selectedItem, setSelectedItem] = useState<LostItem | null>(null);
   const [recoverError, setRecoverError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
 
@@ -514,6 +548,7 @@ export function LostItemsPage() {
   );
   const lostItemsQuery = useLostItems(page, filters);
   const recoverLostItem = useRecoverLostItem();
+  const deleteLostItem = useDeleteLostItem();
   const updateLostItem = useUpdateLostItem();
 
   const items = lostItemsQuery.data?.items ?? [];
@@ -538,6 +573,21 @@ export function LostItemsPage() {
       showToast.success("Lost item marked as recovered.");
     } catch (error) {
       setRecoverError(getErrorMessage(error));
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!selectedItem || selectedItem.userId !== user?.id) return;
+    if (!window.confirm(`Delete "${selectedItem.title}"? This action cannot be undone.`)) return;
+
+    setDeleteError(null);
+    try {
+      await deleteLostItem.mutateAsync(selectedItem.id);
+      setSelectedItem(null);
+      setRecoverError(null);
+      showToast.success("Lost item deleted successfully.");
+    } catch (error) {
+      setDeleteError(getErrorMessage(error));
     }
   };
 
@@ -833,19 +883,23 @@ export function LostItemsPage() {
           item={selectedItem}
           isOwner={Boolean(user?.id && selectedItem.userId === user.id)}
           isRecovering={recoverLostItem.isPending}
-          error={recoverError}
+          isDeleting={deleteLostItem.isPending}
+          recoverError={recoverError}
+          deleteError={deleteError}
           onEdit={() => {
             setEditError(null);
             setIsEditing(true);
           }}
           onClose={() => {
-            if (!recoverLostItem.isPending) {
+            if (!recoverLostItem.isPending && !deleteLostItem.isPending) {
               setSelectedItem(null);
               setRecoverError(null);
+              setDeleteError(null);
               setEditError(null);
             }
           }}
           onRecover={() => void handleRecover()}
+          onDelete={() => void handleDelete()}
         />
       )}
       {selectedItem && isEditing && (
