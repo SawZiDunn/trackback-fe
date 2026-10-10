@@ -443,15 +443,7 @@ function FoundItemDetailsDialog({
           <p className="mt-5 whitespace-pre-wrap text-sm leading-6 text-neutral-700">
             {item.description}
           </p>
-          <div className="mt-6 flex flex-col-reverse gap-3 border-t border-neutral/60 pt-5 sm:flex-row sm:justify-between">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={isDeleting}
-              className="cursor-pointer rounded-lg border border-neutral/70 px-5 py-3 text-sm font-medium text-primary transition hover:bg-[#f4f5f7] disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              Close
-            </button>
+          <div className="mt-6 flex flex-col-reverse gap-3 border-t border-neutral/60 pt-5 sm:flex-row sm:justify-end">
             <div className="flex flex-col gap-3 sm:flex-row">
               {!isOwner && item.status === "OPEN" && (
                 <button
