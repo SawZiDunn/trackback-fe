@@ -540,7 +540,7 @@ function ItemDetailsDialog({
           </p>
           <div className="mt-6 flex flex-col-reverse gap-3 border-t border-neutral/60 pt-5 sm:flex-row sm:justify-between">
             {isOwner && (
-              <div className="flex flex-col gap-3 sm:flex-row">
+              <div className="flex flex-col gap-3 sm:flex-1 sm:flex-row sm:justify-evenly">
                 {item.status === "OPEN" && (
                   <>
                     <button
