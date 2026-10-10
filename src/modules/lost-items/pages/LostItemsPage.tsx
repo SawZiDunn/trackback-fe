@@ -2,6 +2,7 @@
 
 import axios from "axios";
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
@@ -273,7 +274,8 @@ export function LostItemsPage() {
       <main className="flex-1 py-6 sm:py-8">
         <div className="mx-auto max-w-7xl space-y-5 px-4 sm:px-6 lg:px-8">
           <section className="rounded-2xl border border-neutral/60 bg-white p-6 shadow-xs sm:p-8">
-            <div>
+            <div className="flex flex-col items-start justify-between gap-5 sm:flex-row sm:items-center">
+              <div>
               <div className="mb-3 flex flex-wrap items-center gap-2 font-mono text-[11px] text-tertiary">
                 <span className="rounded bg-[#f1f1f3] px-2 py-1 font-semibold tracking-wide">
                   DIRECTORY // SECTION 02
@@ -289,6 +291,14 @@ export function LostItemsPage() {
                 Browse items reported missing across campus. If you have found one, help return it
                 or report a match.
               </p>
+              </div>
+              <Link
+                href="/lost-items/report"
+                className="inline-flex shrink-0 cursor-pointer items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-white/85! shadow-sm transition hover:bg-secondary"
+              >
+                <span aria-hidden="true" className="text-lg leading-none">+</span>
+                Report New Lost Item
+              </Link>
             </div>
           </section>
 

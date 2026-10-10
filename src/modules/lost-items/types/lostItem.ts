@@ -26,3 +26,21 @@ export interface LostItemsResult {
   total: number;
   page: number;
 }
+
+export interface CreateLostItemPayload {
+  title: string;
+  description: string;
+  category: string;
+  lastSeenLocation: string;
+  lastSeenDate: string;
+  photoUrl?: string;
+}
+
+export interface CreateLostItemResponse {
+  data: LostItem;
+  message: string;
+}
+
+export interface UploadedImagesResponse {
+  data: { url: string; publicId: string }[];
+}
