@@ -803,7 +803,7 @@ export function MyPostsPage() {
             <label className="flex min-w-0 items-center gap-3 rounded-lg bg-[#f4f5f7] px-4 py-3 transition focus-within:bg-white focus-within:ring-1 focus-within:ring-primary/25 sm:w-[min(100%,24rem)]">
               <Search aria-hidden="true" size={16} className="shrink-0 text-tertiary" />
               <input
-                type="search"
+                type="text"
                 value={keyword}
                 onChange={(event) => {
                   setKeyword(event.target.value);
