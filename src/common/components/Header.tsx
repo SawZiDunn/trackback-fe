@@ -1,11 +1,12 @@
 "use client";
 
-import { Bell, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
+import { NotificationBell } from "@/modules/notifications/components/NotificationBell";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/" },
@@ -81,14 +82,7 @@ export function Header() {
 
         {/* Right: Notifications & User profile */}
         <div className="flex items-center gap-3 sm:gap-4">
-          <button
-            type="button"
-            aria-label="Notifications"
-            className="relative rounded-full p-2 text-neutral-700 transition hover:bg-[#f4f5f7]"
-          >
-            <Bell size={18} />
-            <span className="absolute top-2 right-2 h-1.5 w-1.5 rounded-full bg-primary ring-2 ring-white" />
-          </button>
+          <NotificationBell />
 
           {isAuthenticated || user ? (
             <Link
