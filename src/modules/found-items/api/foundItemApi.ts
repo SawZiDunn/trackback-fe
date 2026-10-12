@@ -30,6 +30,17 @@ export function useFoundItems(page: number, filters: FoundItemsFilters) {
   });
 }
 
+export function useFoundItem(itemId: string) {
+  return useQuery({
+    queryKey: [...FOUND_ITEMS_QUERY_KEY, itemId],
+    queryFn: async (): Promise<FoundItem> => {
+      const response = await apiClient.get<FoundItem>(`/found-items/${itemId}`);
+      return response.data;
+    },
+    enabled: Boolean(itemId),
+  });
+}
+
 export function useCreateFoundItem() {
   const queryClient = useQueryClient();
 

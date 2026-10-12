@@ -22,6 +22,9 @@ import {
 import { Footer } from "@/common/components/Footer";
 import { Header } from "@/common/components/Header";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
+import { ClaimItemDialog } from "@/modules/claims/components/ClaimItemDialog";
+import { useSubmitClaim } from "@/modules/claims/api/claimApi";
+import type { SubmitClaimPayload } from "@/modules/claims/types/claim";
 import { LOST_ITEM_CATEGORIES } from "@/modules/lost-items/constants/categories";
 import {
   useDeleteFoundItem,
@@ -366,6 +369,7 @@ function FoundItemDetailsDialog({
   isOwner,
   isDeleting,
   onEdit,
+  onClaim,
   onClose,
   onDelete,
 }: {
@@ -373,6 +377,7 @@ function FoundItemDetailsDialog({
   isOwner: boolean;
   isDeleting: boolean;
   onEdit: () => void;
+  onClaim: () => void;
   onClose: () => void;
   onDelete: () => void;
 }) {
@@ -448,10 +453,10 @@ function FoundItemDetailsDialog({
               {!isOwner && item.status === "OPEN" && (
                 <button
                   type="button"
-                  title="Claim flow will be added separately"
+                  onClick={onClaim}
                   className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-secondary"
                 >
-                  Claim item
+                  This is mine
                 </button>
               )}
               {isOwner && (
@@ -576,9 +581,11 @@ export function FoundItemsPage() {
   const [page, setPage] = useState(1);
   const [selectedItem, setSelectedItem] = useState<FoundItem | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [isClaiming, setIsClaiming] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [claimError, setClaimError] = useState<string | null>(null);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => setDebouncedKeyword(keyword.trim()), 300);
@@ -600,6 +607,7 @@ export function FoundItemsPage() {
   const foundItemsQuery = useFoundItems(page, filters);
   const updateFoundItem = useUpdateFoundItem();
   const deleteFoundItem = useDeleteFoundItem();
+  const submitClaim = useSubmitClaim();
   const items = foundItemsQuery.data?.items ?? [];
   const total = foundItemsQuery.data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -642,6 +650,23 @@ export function FoundItemsPage() {
       showToast.success("Found item deleted successfully.");
     } catch (error) {
       setDeleteError(getErrorMessage(error));
+    }
+  };
+
+  const handleSubmitClaim = async (payload: SubmitClaimPayload, proofImage?: File) => {
+    if (!selectedItem) return;
+    setClaimError(null);
+    try {
+      await submitClaim.mutateAsync({
+        foundItemPostId: selectedItem.id,
+        payload,
+        proofImage,
+      });
+      setIsClaiming(false);
+      setSelectedItem(null);
+      showToast.success("Claim submitted. The finder has been notified and will review it.");
+    } catch (error) {
+      setClaimError(getErrorMessage(error));
     }
   };
 
@@ -916,7 +941,7 @@ export function FoundItemsPage() {
       </main>
       <Footer />
 
-      {selectedItem && !isEditing && !isConfirmingDelete && (
+      {selectedItem && !isEditing && !isConfirmingDelete && !isClaiming && (
         <FoundItemDetailsDialog
           item={selectedItem}
           isOwner={Boolean(user?.id && selectedItem.userId === user.id)}
@@ -924,6 +949,10 @@ export function FoundItemsPage() {
           onEdit={() => {
             setEditError(null);
             setIsEditing(true);
+          }}
+          onClaim={() => {
+            setClaimError(null);
+            setIsClaiming(true);
           }}
           onClose={() => {
             if (!deleteFoundItem.isPending) {
@@ -936,6 +965,20 @@ export function FoundItemsPage() {
             setDeleteError(null);
             setIsConfirmingDelete(true);
           }}
+        />
+      )}
+      {selectedItem && isClaiming && (
+        <ClaimItemDialog
+          item={selectedItem}
+          isSubmitting={submitClaim.isPending}
+          error={claimError}
+          onClose={() => {
+            if (!submitClaim.isPending) {
+              setIsClaiming(false);
+              setClaimError(null);
+            }
+          }}
+          onSubmit={handleSubmitClaim}
         />
       )}
       {selectedItem && isEditing && (

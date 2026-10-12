@@ -12,7 +12,7 @@ const NAV_ITEMS = [
   { label: "Lost Items", href: "/lost-items" },
   { label: "Found Items", href: "/found-items" },
   { label: "My Posts", href: "/my-posts" },
-  { label: "My Claims", href: "/my-claims" },
+  { label: "Claims", href: "/claims" },
   { label: "Profile", href: "/profile" },
 ];
 

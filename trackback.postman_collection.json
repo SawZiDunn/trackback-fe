@@ -1,0 +1,1264 @@
+{
+  "info": {
+    "_postman_id": "dda463e8-0711-4127-9202-d890c714bcb5",
+    "name": "trackback",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "35166542"
+  },
+  "item": [
+    {
+      "name": "user",
+      "item": [
+        {
+          "name": "get current user",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{apiBase}}/users/me",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get user by ID",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{apiBase}}/users/01a1004a-1255-754f-9d93-3d1d128bdb1c",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "users",
+                "01a1004a-1255-754f-9d93-3d1d128bdb1c"
+              ],
+              "query": [
+                {
+                  "key": "name",
+                  "value": "\"Kyi\"",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "email",
+                  "value": "\"kyi@gmail.com\"",
+                  "type": "text",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update user",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\":\"KT\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{apiBase}}/users/me",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "auth",
+      "item": [
+        {
+          "name": "register",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\":\"Kyi\",\n    \"email\":\"kyi@gmail.com\",\n    \"password\": \"Password@123\",\n    \"role\":\"user\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{apiBase}}/auth/register",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ],
+              "query": [
+                {
+                  "key": "name",
+                  "value": "\"Kyi\"",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "email",
+                  "value": "\"kyi@gmail.com\"",
+                  "type": "text",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "logout",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"kyi@gmail.com\",\n    \"password\": \"Password@123\",\n    \"rememberMe\":true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{apiBase}}/auth/logout",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"kyithantsin4321@gmail.com\",\n    \"password\": \"Password@123\",\n    \"rememberMe\":true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{apiBase}}/auth/login",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "forgot-password",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\":\"kyithantsin4321@gmail.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{apiBase}}/auth/forgot-password",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "auth",
+                "forgot-password"
+              ],
+              "query": [
+                {
+                  "key": "name",
+                  "value": "\"Kyi\"",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "email",
+                  "value": "\"kyi@gmail.com\"",
+                  "type": "text",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "reset-password",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"password\":\"Password@1234\",\n    \"token\":\"{{json_web_token_1832}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{apiBase}}/auth/reset-password",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "auth",
+                "reset-password"
+              ],
+              "query": [
+                {
+                  "key": "name",
+                  "value": "\"Kyi\"",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "email",
+                  "value": "\"kyi@gmail.com\"",
+                  "type": "text",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "lost-items",
+      "item": [
+        {
+          "name": "list lost items",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{apiBase}}/lost-items?page=1&limit=10&status=OPEN",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "lost-items"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "status",
+                  "value": "OPEN"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get lost item by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{apiBase}}/lost-items/{{lostItemId}}",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "lost-items",
+                "{{lostItemId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "create lost item",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    pm.collectionVariables.set('lostItemId', pm.response.json().data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Black wallet\",\n  \"description\": \"Black leather wallet found near the library.\",\n  \"category\": \"wallet\",\n  \"lastSeenLocation\": \"Central Library\",\n  \"lastSeenDate\": \"2026-10-03\",\n  \"photoUrl\": \"https://example.com/wallet.jpg\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{apiBase}}/lost-items",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "lost-items"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "recover lost item",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{apiBase}}/lost-items/{{lostItemId}}/recover",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "lost-items",
+                "{{lostItemId}}",
+                "recover"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update lost item",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Black wallet\",\n  \"description\": \"Updated: black leather wallet lost near the library entrance.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{apiBase}}/lost-items/{{lostItemId}}",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "lost-items",
+                "{{lostItemId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "delete lost item",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{apiBase}}/lost-items/{{lostItemId}}",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "lost-items",
+                "{{lostItemId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Public list/detail requests and authenticated create/recover requests for LostItemPost."
+    },
+    {
+      "name": "found-items",
+      "item": [
+        {
+          "name": "list found items",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{apiBase}}/found-items?page=1&limit=10&status=OPEN",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "found-items"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "status",
+                  "value": "OPEN"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get found item by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{apiBase}}/found-items/{{foundItemPostId}}",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "found-items",
+                "{{foundItemPostId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "create found item",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    pm.collectionVariables.set('foundItemPostId', pm.response.json().data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Black wallet\",\n  \"description\": \"Black leather wallet found near the library.\",\n  \"category\": \"wallet\",\n  \"foundLocation\": \"Central Library\",\n  \"foundDate\": \"2026-10-03T09:00:00Z\",\n  \"photoUrl\": \"https://example.com/wallet.jpg\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{apiBase}}/found-items",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "found-items"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update found item",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Black leather wallet\",\n  \"description\": \"Updated: black leather wallet with a small scratch.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{apiBase}}/found-items/{{foundItemPostId}}",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "found-items",
+                "{{foundItemPostId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "delete found item",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{apiBase}}/found-items/{{foundItemPostId}}",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "found-items",
+                "{{foundItemPostId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Authenticated list/detail/create/update/delete requests for FoundItemPost."
+    },
+    {
+      "name": "matching",
+      "item": [
+        {
+          "name": "run matching for item",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{apiBase}}/matching/run/{{foundItemPostId}}",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "matching",
+                "run",
+                "{{foundItemPostId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get matches for lost item",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{apiBase}}/lost-items/{{lostItemId}}/matches",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "lost-items",
+                "{{lostItemId}}",
+                "matches"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get matches for found item",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{apiBase}}/found-items/{{foundItemPostId}}/matches",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "found-items",
+                "{{foundItemPostId}}",
+                "matches"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Owner-protected match lookup endpoints and the authenticated manual matching trigger."
+    },
+    {
+      "name": "notifications",
+      "item": [
+        {
+          "name": "list my notifications",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const items = pm.response.json().items || [];",
+                  "if (items.length > 0) {",
+                  "    pm.collectionVariables.set('notificationId', items[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{apiBase}}/notifications?page=1&limit=20",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "notifications"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "mark notification as read",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{apiBase}}/notifications/{{notificationId}}/read",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "notifications",
+                "{{notificationId}}",
+                "read"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "mark all notifications as read",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{apiBase}}/notifications/read-all",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "notifications",
+                "read-all"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Login as a user who has received a claim notification, then list notifications before marking one or all as read."
+    },
+    {
+      "name": "claims",
+      "item": [
+        {
+          "name": "login claimant",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{claimantEmail}}\",\n  \"password\": \"Password@123\",\n  \"rememberMe\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{apiBase}}/auth/login",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "login finder",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{finderEmail}}\",\n  \"password\": \"Password@123\",\n  \"rememberMe\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{apiBase}}/auth/login",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "send claim invite as finder",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lostItemId\": \"{{lostItemId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{apiBase}}/found-items/{{foundItemPostId}}/claim-invites",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "found-items",
+                "{{foundItemPostId}}",
+                "claim-invites"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "submit claim as claimant",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    pm.collectionVariables.set('claimId', pm.response.json().id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "justification",
+                  "value": "The initials and unique scratch on the item match mine.",
+                  "type": "text"
+                },
+                {
+                  "key": "itemDetails",
+                  "value": "Black wallet with student card and three bank cards.",
+                  "type": "text"
+                },
+                {
+                  "key": "proofPhotoUrl",
+                  "value": "https://example.com/proof.jpg",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "proofPhoto",
+                  "type": "file",
+                  "value": null,
+                  "disabled": true
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{apiBase}}/found-items/{{foundItemPostId}}/claims",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "found-items",
+                "{{foundItemPostId}}",
+                "claims"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "submit claim as claimant (JSON)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    pm.collectionVariables.set('claimId', pm.response.json().id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"justification\": \"The initials and unique scratch on the item match mine.\",\n  \"itemDetails\": \"Black wallet with student card and three bank cards.\",\n  \"proofPhotoUrl\": \"https://example.com/proof.jpg\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{apiBase}}/found-items/{{foundItemPostId}}/claims",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "found-items",
+                "{{foundItemPostId}}",
+                "claims"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "list my claims",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{apiBase}}/claims?role=mine&page=1&limit=20",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "claims"
+              ],
+              "query": [
+                {
+                  "key": "role",
+                  "value": "mine"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get claim detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{apiBase}}/claims/{{claimId}}",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "claims",
+                "{{claimId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "list claims to review as finder",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{apiBase}}/claims?role=toReview&status=PENDING&page=1&limit=20",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "claims"
+              ],
+              "query": [
+                {
+                  "key": "role",
+                  "value": "toReview"
+                },
+                {
+                  "key": "status",
+                  "value": "PENDING"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "approve claim as finder",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"approve\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{apiBase}}/claims/{{claimId}}/review",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "claims",
+                "{{claimId}}",
+                "review"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "reject claim as finder",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"reject\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{apiBase}}/claims/{{claimId}}/review",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "claims",
+                "{{claimId}}",
+                "review"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Set foundItemPostId to an existing found item ID before submitting a claim. The HTTP-only token cookie is stored by Postman's cookie jar after login."
+    },
+    {
+      "name": "media",
+      "item": [
+        {
+          "name": "upload image",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": [
+                    "/Users/kyithantsin/Downloads/face2.jpg"
+                  ]
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{apiBase}}/media/image",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "media",
+                "image"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "delete image",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"publicId\":\"trackback-dev/lost-items/images/ww3wgbpnuq3vjrwz5bi6\"\n    // use publicIds for multiple delete\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{apiBase}}/media/image",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "media",
+                "image"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "browse-items",
+      "item": [
+        {
+          "name": "search items by query",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{apiBase}}/items/search?type=all",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "items",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "all"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "my-posts",
+      "item": [
+        {
+          "name": "get my posts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{apiBase}}/my-posts?page=1&limit=10",
+              "host": [
+                "{{apiBase}}"
+              ],
+              "path": [
+                "my-posts"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "apiBase",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "json_web_token_1832"
+    },
+    {
+      "key": "claimantEmail",
+      "value": "claimant@example.com"
+    },
+    {
+      "key": "finderEmail",
+      "value": "finder@example.com"
+    },
+    {
+      "key": "foundItemPostId",
+      "value": "01a10126-9a4f-7616-bb27-a5e4508f5944"
+    },
+    {
+      "key": "claimId",
+      "value": ""
+    },
+    {
+      "key": "lostItemId",
+      "value": ""
+    },
+    {
+      "key": "notificationId",
+      "value": ""
+    }
+  ]
+}
