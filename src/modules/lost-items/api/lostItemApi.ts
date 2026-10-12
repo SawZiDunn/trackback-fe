@@ -30,6 +30,17 @@ export function useLostItems(page: number, filters: LostItemsFilters) {
   });
 }
 
+export function useLostItem(itemId: string) {
+  return useQuery({
+    queryKey: [...LOST_ITEMS_QUERY_KEY, itemId],
+    queryFn: async (): Promise<LostItem> => {
+      const response = await apiClient.get<LostItem>(`/lost-items/${itemId}`);
+      return response.data;
+    },
+    enabled: Boolean(itemId),
+  });
+}
+
 export function useCreateLostItem() {
   const queryClient = useQueryClient();
 
