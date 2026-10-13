@@ -9,7 +9,6 @@ import { useAuth } from "@/modules/auth/hooks/useAuth";
 import { NotificationBell } from "@/modules/notifications/components/NotificationBell";
 
 const NAV_ITEMS = [
-  { label: "Dashboard", href: "/" },
   { label: "Lost Items", href: "/lost-items" },
   { label: "Found Items", href: "/found-items" },
   { label: "My Posts", href: "/my-posts" },
