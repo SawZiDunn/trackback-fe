@@ -62,7 +62,12 @@ export function useSubmitClaim() {
 }
 
 // List claims for the current user — as claimant (mine) or as finder (toReview)
-export function useClaims(role: ClaimRole, status: ClaimStatus | "", page: number) {
+export function useClaims(
+  role: ClaimRole,
+  status: ClaimStatus | "",
+  page: number,
+  options?: { enabled?: boolean },
+) {
   return useQuery({
     queryKey: [...CLAIMS_QUERY_KEY, role, status, page],
     queryFn: async (): Promise<ClaimsResult> => {
@@ -76,6 +81,7 @@ export function useClaims(role: ClaimRole, status: ClaimStatus | "", page: numbe
       });
       return response.data;
     },
+    enabled: options?.enabled ?? true,
   });
 }
 

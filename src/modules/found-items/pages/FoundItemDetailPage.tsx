@@ -16,7 +16,7 @@ import { Footer } from "@/common/components/Footer";
 import { Header } from "@/common/components/Header";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
 import { ClaimItemDialog } from "@/modules/claims/components/ClaimItemDialog";
-import { useSubmitClaim } from "@/modules/claims/api/claimApi";
+import { useClaims, useSubmitClaim } from "@/modules/claims/api/claimApi";
 import type { SubmitClaimPayload } from "@/modules/claims/types/claim";
 import { useFoundItem } from "../api/foundItemApi";
 
@@ -50,6 +50,12 @@ export function FoundItemDetailPage({ itemId }: { itemId: string }) {
   const item = foundItemQuery.data;
   const isOwner = Boolean(user?.id && item && item.userId === user.id);
   const canClaim = Boolean(item && !isOwner && item.status === "OPEN");
+  // Pending claims on this specific item, from the finder's to-review list.
+  // Only first page is scanned — fine at project scale.
+  const pendingClaimsQuery = useClaims("toReview", "PENDING", 1, { enabled: isOwner });
+  const pendingClaims = (pendingClaimsQuery.data?.items ?? []).filter(
+    (claim) => claim.foundItemPostId === itemId,
+  );
 
   const handleSubmitClaim = async (payload: SubmitClaimPayload, proofImage?: File) => {
     if (!item) return;
@@ -162,13 +168,33 @@ export function FoundItemDetailPage({ itemId }: { itemId: string }) {
                     </div>
                   ) : isOwner ? (
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <p className="text-sm text-tertiary">You reported this found item.</p>
-                      <Link
-                        href="/claims"
-                        className="inline-flex shrink-0 items-center justify-center rounded-lg border border-neutral/70 px-5 py-3 text-sm font-semibold text-primary transition hover:bg-[#f4f5f7]"
-                      >
-                        View claims to review
-                      </Link>
+                      <p className="text-sm text-tertiary">
+                        You reported this found item.
+                        {pendingClaims.length > 0 &&
+                          ` ${pendingClaims.length} claim${pendingClaims.length > 1 ? "s" : ""} awaiting your review.`}
+                      </p>
+                      {pendingClaims.length === 1 ? (
+                        <Link
+                          href={`/claims/${pendingClaims[0].id}`}
+                          className="inline-flex shrink-0 cursor-pointer items-center justify-center rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-secondary"
+                        >
+                          Review pending claim
+                        </Link>
+                      ) : pendingClaims.length > 1 ? (
+                        <Link
+                          href="/claims?tab=toReview"
+                          className="inline-flex shrink-0 cursor-pointer items-center justify-center rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-secondary"
+                        >
+                          Review {pendingClaims.length} pending claims
+                        </Link>
+                      ) : (
+                        <Link
+                          href="/claims?tab=toReview"
+                          className="inline-flex shrink-0 items-center justify-center rounded-lg border border-neutral/70 px-5 py-3 text-sm font-semibold text-primary transition hover:bg-[#f4f5f7]"
+                        >
+                          View claims to review
+                        </Link>
+                      )}
                     </div>
                   ) : (
                     STATUS_HINTS[item.status] && (
