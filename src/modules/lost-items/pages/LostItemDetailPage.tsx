@@ -16,6 +16,9 @@ import {
 import { Footer } from "@/common/components/Footer";
 import { Header } from "@/common/components/Header";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
+import { ClaimInviteDialog } from "@/modules/claims/components/ClaimInviteDialog";
+import { useSendClaimInvite } from "@/modules/claims/api/claimApi";
+import { useMyPosts } from "@/modules/my-posts/api/myPostsApi";
 import { useLostItem, useRecoverLostItem } from "../api/lostItemApi";
 
 function formatDate(value: string) {
@@ -41,12 +44,36 @@ export function LostItemDetailPage({ itemId }: { itemId: string }) {
   const { user } = useAuth();
   const lostItemQuery = useLostItem(itemId);
   const recoverLostItem = useRecoverLostItem();
+  const sendClaimInvite = useSendClaimInvite();
+  const myPostsQuery = useMyPosts();
   const [isConfirmingRecover, setIsConfirmingRecover] = useState(false);
   const [recoverError, setRecoverError] = useState<string | null>(null);
+  const [isInviting, setIsInviting] = useState(false);
+  const [inviteError, setInviteError] = useState<string | null>(null);
 
   const item = lostItemQuery.data;
   const isOwner = Boolean(user?.id && item && item.userId === user.id);
   const canRecover = Boolean(item && isOwner && item.status === "OPEN");
+  // Found-item owners can tell this poster they have the item; the backend
+  // invite requires one of the viewer's own OPEN found posts to point at.
+  const openFoundPosts = (myPostsQuery.data?.items ?? []).filter(
+    (post) => post.postType === "FOUND" && post.status === "OPEN",
+  );
+  const canInvite = Boolean(
+    user && item && !isOwner && item.status === "OPEN" && openFoundPosts.length > 0,
+  );
+
+  const handleSendInvite = async (foundItemPostId: string) => {
+    if (!item) return;
+    setInviteError(null);
+    try {
+      await sendClaimInvite.mutateAsync({ foundItemPostId, lostItemId: item.id });
+      setIsInviting(false);
+      showToast.success("Invite sent. The owner will be notified to review and claim it.");
+    } catch (error) {
+      setInviteError(getErrorMessage(error));
+    }
+  };
 
   const handleRecover = async () => {
     if (!item) return;
@@ -161,6 +188,23 @@ export function LostItemDetailPage({ itemId }: { itemId: string }) {
                     </div>
                   ) : isOwner ? (
                     <p className="text-sm text-tertiary">You reported this lost item.</p>
+                  ) : canInvite ? (
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <p className="text-sm text-tertiary">
+                        Found this item? Let the owner know — they can submit a claim to confirm
+                        it is theirs.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setInviteError(null);
+                          setIsInviting(true);
+                        }}
+                        className="inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-secondary"
+                      >
+                        I have this
+                      </button>
+                    </div>
                   ) : (
                     STATUS_HINTS[item.status] && (
                       <p className="text-sm text-tertiary">{STATUS_HINTS[item.status]}</p>
@@ -246,6 +290,22 @@ export function LostItemDetailPage({ itemId }: { itemId: string }) {
             </div>
           </section>
         </div>
+      )}
+
+      {item && isInviting && (
+        <ClaimInviteDialog
+          lostItemTitle={item.title}
+          foundItems={openFoundPosts}
+          isSubmitting={sendClaimInvite.isPending}
+          error={inviteError}
+          onClose={() => {
+            if (!sendClaimInvite.isPending) {
+              setIsInviting(false);
+              setInviteError(null);
+            }
+          }}
+          onSubmit={handleSendInvite}
+        />
       )}
     </div>
   );

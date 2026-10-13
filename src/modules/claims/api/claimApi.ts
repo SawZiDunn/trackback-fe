@@ -85,6 +85,25 @@ export function useClaims(
   });
 }
 
+// Finder invites the owner of a lost item post to claim their found item
+export function useSendClaimInvite() {
+  return useMutation({
+    mutationFn: async ({
+      foundItemPostId,
+      lostItemId,
+    }: {
+      foundItemPostId: string;
+      lostItemId: string;
+    }): Promise<{ message: string }> => {
+      const response = await apiClient.post<{ message: string }>(
+        `/found-items/${foundItemPostId}/claim-invites`,
+        { lostItemId },
+      );
+      return response.data;
+    },
+  });
+}
+
 export function useClaim(claimId: string) {
   return useQuery({
     queryKey: [...CLAIMS_QUERY_KEY, claimId],
