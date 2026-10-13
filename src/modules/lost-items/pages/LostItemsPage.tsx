@@ -19,11 +19,13 @@ import {
   ShieldCheck,
   Trash2,
   UploadCloud,
+  UserRound,
   X,
 } from "lucide-react";
 import { Footer } from "@/common/components/Footer";
 import { Header } from "@/common/components/Header";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
+import { useProfile as useProfileQuery } from "@/modules/profile/api/profileApi";
 import {
   useDeleteLostItem,
   useLostItems,
@@ -59,6 +61,47 @@ function getErrorMessage(error: unknown) {
     return error.response?.data?.message ?? error.message;
   }
   return error instanceof Error ? error.message : "Something went wrong. Please try again.";
+}
+
+function PostOwner({ userId, compact = false }: { userId: string; compact?: boolean }) {
+  const profileQuery = useProfileQuery(userId);
+  const profile = profileQuery.data;
+  const name = profile?.name || (profileQuery.isError ? "Reporter profile unavailable" : "Loading reporter…");
+  const avatarSize = compact ? 30 : 42;
+
+  return (
+    <div className="flex min-w-0 items-center gap-2.5">
+      <div
+        className={`relative shrink-0 overflow-hidden rounded-full border border-neutral/70 bg-[#f1f1f3] ${
+          compact ? "h-[30px] w-[30px]" : "h-[42px] w-[42px]"
+        }`}
+      >
+        {profile?.profileUrl ? (
+          <Image
+            src={profile.profileUrl}
+            alt=""
+            fill
+            sizes={`${avatarSize}px`}
+            unoptimized
+            className="object-cover"
+          />
+        ) : (
+          <span className="flex h-full w-full items-center justify-center text-tertiary">
+            <UserRound aria-hidden="true" size={compact ? 15 : 19} />
+          </span>
+        )}
+      </div>
+      <div className="min-w-0">
+        <p
+          className={`truncate font-medium text-primary ${compact ? "text-xs" : "text-sm"}`}
+          title={profileQuery.error instanceof Error ? profileQuery.error.message : undefined}
+        >
+          {name}
+        </p>
+        {!compact && <p className="text-xs text-tertiary">Post owner</p>}
+      </div>
+    </div>
+  );
 }
 
 function LostItemCard({
@@ -112,6 +155,9 @@ function LostItemCard({
         <p className="mt-2 line-clamp-2 min-h-10 text-xs leading-5 text-neutral-600">
           {item.description}
         </p>
+        <div className="mt-3 border-t border-neutral/50 pt-3">
+          <PostOwner userId={item.userId} compact />
+        </div>
         <button
           type="button"
           onClick={() => onView(item)}
@@ -534,6 +580,9 @@ function ItemDetailsDialog({
               <CalendarDays aria-hidden="true" size={16} className="mt-0.5 shrink-0" />
               Last seen {formatDate(item.lastSeenDate)}
             </p>
+          </div>
+          <div className="mt-5 rounded-xl bg-[#f8f9fa] p-4">
+            <PostOwner userId={item.userId} />
           </div>
           <p className="mt-5 whitespace-pre-wrap text-sm leading-6 text-neutral-700">
             {item.description}
