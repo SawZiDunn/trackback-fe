@@ -44,8 +44,8 @@ function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Something went wrong. Please try again.";
 }
 
-export function ClaimsPage() {
-  const [role, setRole] = useState<ClaimRole>("mine");
+export function ClaimsPage({ initialRole = "mine" }: { initialRole?: ClaimRole }) {
+  const [role, setRole] = useState<ClaimRole>(initialRole);
   const [status, setStatus] = useState<ClaimStatus | "">("");
   const [page, setPage] = useState(1);
 
