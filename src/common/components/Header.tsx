@@ -4,9 +4,11 @@ import { Search } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
 import { NotificationBell } from "@/modules/notifications/components/NotificationBell";
+import { useSearchItems } from "@/modules/items/api/itemApi";
+import { SearchDropdown } from "@/modules/items/components/SearchDropdown";
 
 const NAV_ITEMS = [
   { label: "Lost Items", href: "/lost-items" },
@@ -20,11 +22,31 @@ export function Header() {
   const pathname = usePathname();
   const { user, isAuthenticated } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  const { data: searchResults, isLoading } = useSearchItems({ query: searchQuery });
 
   const displayName = user?.name || "Alex Rivera";
   const avatarUrl =
     user?.profileUrl ||
     "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250";
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const showDropdown = isDropdownOpen && searchQuery.trim().length > 0;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-neutral/60 bg-white/95 backdrop-blur-md">
@@ -35,13 +57,14 @@ export function Header() {
             TrackBack
           </Link>
 
-          <div className="relative hidden items-center sm:flex">
+          <div ref={searchContainerRef} className="relative hidden items-center sm:flex">
             <div className="relative flex w-60 items-center rounded-lg bg-[#f4f5f7] px-3 py-1.5 transition-colors focus-within:bg-white focus-within:ring-1 focus-within:ring-primary/20 md:w-72">
               <Search size={14} className="text-tertiary shrink-0" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setIsDropdownOpen(true)}
                 placeholder="Search lost or found items..."
                 className="ml-2 w-full bg-transparent text-xs text-primary placeholder:text-neutral-400 outline-none"
               />
@@ -49,6 +72,14 @@ export function Header() {
                 ⌘K
               </span>
             </div>
+            {showDropdown && (
+              <SearchDropdown
+                items={searchResults?.items ?? []}
+                total={searchResults?.total ?? 0}
+                query={searchQuery}
+                onClose={() => setIsDropdownOpen(false)}
+              />
+            )}
           </div>
         </div>
 
