@@ -24,17 +24,7 @@ export function Footer() {
             <ul className="space-y-2 text-xs">
               <li>
                 <Link href="#" className="text-neutral-600 transition hover:text-primary">
-                  Custody Transfer Protocol
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-neutral-600 transition hover:text-primary">
                   Identity Verification Standards
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-neutral-600 transition hover:text-primary">
-                  Disposal Schedule Policies
                 </Link>
               </li>
             </ul>
