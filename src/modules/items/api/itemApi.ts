@@ -13,7 +13,7 @@ export function useSearchItems(params: SearchItemsParams) {
     queryKey: [...SEARCH_QUERY_KEY, query],
     queryFn: async (): Promise<SearchItemsResult> => {
       const response = await apiClient.get<SearchItemsResult>("/items/search", {
-        params: { query, limit: params.limit ?? SEARCH_LIMIT },
+        params: { keyword: query, limit: params.limit ?? SEARCH_LIMIT },
       });
       return response.data;
     },
