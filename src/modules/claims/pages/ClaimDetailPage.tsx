@@ -4,11 +4,12 @@ import axios from "axios";
 import Image from "next/image";
 import Link from "next/link";
 import { showToast } from "nextjs-toast-notify";
-import { ArrowLeft, Check, ImagePlus, LoaderCircle, MapPin, X } from "lucide-react";
+import { ArrowLeft, Check, ImagePlus, LoaderCircle, MapPin, UserRound, X } from "lucide-react";
 import { Footer } from "@/common/components/Footer";
 import { Header } from "@/common/components/Header";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
 import { useFoundItem } from "@/modules/found-items/api/foundItemApi";
+import { useProfile as useProfileQuery } from "@/modules/profile/api/profileApi";
 import { useClaim, useReviewClaim } from "../api/claimApi";
 
 const STATUS_BADGES: Record<string, string> = {
@@ -29,6 +30,43 @@ function getErrorMessage(error: unknown) {
     return error.response?.data?.message ?? error.message;
   }
   return error instanceof Error ? error.message : "Something went wrong. Please try again.";
+}
+
+function PostOwner({ userId, label }: { userId: string; label: string }) {
+  const profileQuery = useProfileQuery(userId);
+  const profile = profileQuery.data;
+  const name =
+    profile?.name || (profileQuery.isError ? "Post owner unavailable" : "Loading…");
+
+  return (
+    <div className="flex min-w-0 items-center gap-2.5">
+      <div className="relative h-[42px] w-[42px] shrink-0 overflow-hidden rounded-full border border-neutral/70 bg-[#f1f1f3]">
+        {profile?.profileUrl ? (
+          <Image
+            src={profile.profileUrl}
+            alt=""
+            fill
+            sizes="42px"
+            unoptimized
+            className="object-cover"
+          />
+        ) : (
+          <span className="flex h-full w-full items-center justify-center text-tertiary">
+            <UserRound aria-hidden="true" size={19} />
+          </span>
+        )}
+      </div>
+      <div className="min-w-0">
+        <p
+          className="truncate text-sm font-medium text-primary"
+          title={profileQuery.error instanceof Error ? profileQuery.error.message : undefined}
+        >
+          {name}
+        </p>
+        <p className="text-xs text-tertiary">{label}</p>
+      </div>
+    </div>
+  );
 }
 
 export function ClaimDetailPage({ claimId }: { claimId: string }) {
@@ -166,7 +204,12 @@ export function ClaimDetailPage({ claimId }: { claimId: string }) {
                       <MapPin aria-hidden="true" size={13} className="mt-0.5 shrink-0" />
                       Found at {claim.foundItem.foundLocation} · {formatDate(claim.foundItem.foundDate)}
                     </p>
-                    <p className="mt-3 text-sm leading-6 text-neutral-700">
+                    {foundItem && (
+                      <div className="mt-4 rounded-xl bg-[#f8f9fa] p-4">
+                        <PostOwner userId={foundItem.userId} label="Post owner" />
+                      </div>
+                    )}
+                    <p className="mt-4 text-sm leading-6 text-neutral-700">
                       {claim.foundItem.description}
                     </p>
                     <Link
@@ -198,12 +241,12 @@ export function ClaimDetailPage({ claimId }: { claimId: string }) {
                       {claim.claim.itemDetails}
                     </p>
                   </div>
-                  {claim.claim.proofPhotoUrl && (
-                    <div>
-                      <h3 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-tertiary">
-                        Proof photo
-                      </h3>
-                      <div className="relative mt-2 h-56 w-full overflow-hidden rounded-xl bg-[#ececef]">
+                  <div>
+                    <h3 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-tertiary">
+                      Proof photo
+                    </h3>
+                    <div className="relative mt-2 h-56 w-full overflow-hidden rounded-xl bg-[#ececef]">
+                      {claim.claim.proofPhotoUrl ? (
                         <Image
                           src={claim.claim.proofPhotoUrl}
                           alt="Claim proof photo"
@@ -212,9 +255,18 @@ export function ClaimDetailPage({ claimId }: { claimId: string }) {
                           unoptimized
                           className="object-contain"
                         />
-                      </div>
+                      ) : (
+                        <>
+                          <div className="flex h-full items-center justify-center text-neutral-400">
+                            <ImagePlus aria-hidden="true" size={40} strokeWidth={1.3} />
+                          </div>
+                          <p className="absolute bottom-2 left-0 right-0 text-center text-[11px] text-tertiary">
+                            No proof photo attached
+                          </p>
+                        </>
+                      )}
                     </div>
-                  )}
+                  </div>
 
                   {canReview && (
                     <div className="space-y-3 border-t border-neutral/60 pt-5">

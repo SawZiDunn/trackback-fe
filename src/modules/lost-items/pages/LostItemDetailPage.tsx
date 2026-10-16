@@ -54,14 +54,13 @@ export function LostItemDetailPage({ itemId }: { itemId: string }) {
   const item = lostItemQuery.data;
   const isOwner = Boolean(user?.id && item && item.userId === user.id);
   const canRecover = Boolean(item && isOwner && item.status === "OPEN");
-  // Found-item owners can tell this poster they have the item; the backend
-  // invite requires one of the viewer's own OPEN found posts to point at.
+  // Non-owners can say they have the item. The backend invite points at one of
+  // the viewer's own OPEN found posts, so the dialog guides them to report one
+  // first if they don't have any yet.
   const openFoundPosts = (myPostsQuery.data?.items ?? []).filter(
     (post) => post.postType === "FOUND" && post.status === "OPEN",
   );
-  const canInvite = Boolean(
-    user && item && !isOwner && item.status === "OPEN" && openFoundPosts.length > 0,
-  );
+  const canInvite = Boolean(user && item && !isOwner && item.status === "OPEN");
 
   const handleSendInvite = async (foundItemPostId: string) => {
     if (!item) return;

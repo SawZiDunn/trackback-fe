@@ -26,6 +26,9 @@ import { Footer } from "@/common/components/Footer";
 import { Header } from "@/common/components/Header";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
 import { useProfile as useProfileQuery } from "@/modules/profile/api/profileApi";
+import { useSendClaimInvite } from "@/modules/claims/api/claimApi";
+import { ClaimInviteDialog } from "@/modules/claims/components/ClaimInviteDialog";
+import { useMyPosts } from "@/modules/my-posts/api/myPostsApi";
 import {
   useDeleteLostItem,
   useLostItems,
@@ -506,6 +509,7 @@ function ItemDetailsDialog({
   isDeleting,
   recoverError,
   onEdit,
+  onInvite,
   onClose,
   onRecover,
   onDelete,
@@ -516,6 +520,7 @@ function ItemDetailsDialog({
   isDeleting: boolean;
   recoverError: string | null;
   onEdit: () => void;
+  onInvite?: () => void;
   onClose: () => void;
   onRecover: () => void;
   onDelete: () => void;
@@ -588,6 +593,15 @@ function ItemDetailsDialog({
             {item.description}
           </p>
           <div className="mt-6 flex flex-col-reverse gap-3 border-t border-neutral/60 pt-5 sm:flex-row sm:justify-end">
+            {!isOwner && item.status === "OPEN" && onInvite && (
+              <button
+                type="button"
+                onClick={onInvite}
+                className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-secondary"
+              >
+                I have this
+              </button>
+            )}
             {isOwner && (
               <div className="flex flex-col gap-3 sm:flex-1 sm:flex-row sm:justify-end">
                 {item.status === "OPEN" && (
@@ -657,6 +671,8 @@ export function LostItemsPage() {
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
+  const [invitingItem, setInvitingItem] = useState<LostItem | null>(null);
+  const [inviteError, setInviteError] = useState<string | null>(null);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => setDebouncedKeyword(keyword.trim()), 300);
@@ -676,6 +692,12 @@ export function LostItemsPage() {
   const recoverLostItem = useRecoverLostItem();
   const deleteLostItem = useDeleteLostItem();
   const updateLostItem = useUpdateLostItem();
+  const sendClaimInvite = useSendClaimInvite();
+  const myPostsQuery = useMyPosts();
+  // The invite points the owner at one of the viewer's own OPEN found posts.
+  const openFoundPosts = (myPostsQuery.data?.items ?? []).filter(
+    (post) => post.postType === "FOUND" && post.status === "OPEN",
+  );
 
   const items = lostItemsQuery.data?.items ?? [];
   const total = lostItemsQuery.data?.total ?? 0;
@@ -731,6 +753,18 @@ export function LostItemsPage() {
       showToast.success("Lost item report updated successfully.");
     } catch (error) {
       setEditError(getErrorMessage(error));
+    }
+  };
+
+  const handleSendInvite = async (foundItemPostId: string) => {
+    if (!invitingItem) return;
+    setInviteError(null);
+    try {
+      await sendClaimInvite.mutateAsync({ foundItemPostId, lostItemId: invitingItem.id });
+      setInvitingItem(null);
+      showToast.success("Invite sent. The owner will be notified to review and claim it.");
+    } catch (error) {
+      setInviteError(getErrorMessage(error));
     }
   };
 
@@ -1015,6 +1049,14 @@ export function LostItemsPage() {
             setEditError(null);
             setIsEditing(true);
           }}
+          onInvite={
+            user && selectedItem.userId !== user.id && selectedItem.status === "OPEN"
+              ? () => {
+                  setInviteError(null);
+                  setInvitingItem(selectedItem);
+                }
+              : undefined
+          }
           onClose={() => {
             if (!recoverLostItem.isPending && !deleteLostItem.isPending) {
               setSelectedItem(null);
@@ -1057,6 +1099,21 @@ export function LostItemsPage() {
             }
           }}
           onSubmit={handleUpdate}
+        />
+      )}
+      {invitingItem && (
+        <ClaimInviteDialog
+          lostItemTitle={invitingItem.title}
+          foundItems={openFoundPosts}
+          isSubmitting={sendClaimInvite.isPending}
+          error={inviteError}
+          onClose={() => {
+            if (!sendClaimInvite.isPending) {
+              setInvitingItem(null);
+              setInviteError(null);
+            }
+          }}
+          onSubmit={handleSendInvite}
         />
       )}
     </div>
