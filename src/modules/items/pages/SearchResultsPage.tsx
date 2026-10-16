@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Search } from "lucide-react";
@@ -40,7 +40,7 @@ function getItemDetailHref(item: Item) {
     : `/found-items/${item.id}`;
 }
 
-export function SearchResultsPage() {
+function SearchResultsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const query = searchParams.get("q") ?? "";
@@ -171,5 +171,13 @@ export function SearchResultsPage() {
       </main>
       <Footer />
     </div>
+  );
+}
+
+export function SearchResultsPage() {
+  return (
+    <Suspense fallback={null}>
+      <SearchResultsContent />
+    </Suspense>
   );
 }
