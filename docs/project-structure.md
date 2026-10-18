@@ -72,26 +72,6 @@ specific features (`core/` must not import from `modules/`).
   notifications, or profile mostly touches one folder each, with fewer
   merge conflicts across the team.
 
-### Software characteristics improved
-
-- **Modularity:** each feature is a self-contained slice that can be added or
-  removed without touching unrelated features.
-- **Coupling:** features depend only on shared infrastructure and shared UI,
-  never sideways on each other except for real domain dependencies
-  (e.g. claims depends on found-items types). `core/` depends on nothing
-  feature-specific.
-- **Cohesion:** everything about one feature lives in one folder, including
-  its API contracts.
-- **Maintainability:** server-state logic is centralized in query hooks rather
-  than scattered `useEffect` fetches, and cache invalidation is declared next
-  to the mutation that changes the data.
-- **Testability:** API hooks wrap the HTTP layer, so components can be tested
-  against hook contracts and hooks can be tested without rendering pages.
-- **Portability:** the UI is standard React with Tailwind classes; the
-  framework-specific surface (App Router files) is kept deliberately thin.
-- **Scalability:** per-feature query keys and hooks keep cache growth
-  predictable as features are added.
-
 ## Server state vs UI state
 
 Data ownership decides where state lives:
@@ -102,42 +82,6 @@ Data ownership decides where state lives:
 - **Zustand** owns client session/UI state (current user session, global app
   state). Server data is not copied into Zustand.
 
-## Design patterns used in this repository
-
-Only patterns that are directly visible in the code are listed.
-
-### Feature module (vertical slice)
-
-`src/modules/*` packages each feature's UI, hooks, API, and types behind one
-folder boundary. The rest of the app interacts with a feature through its
-exported pages and components.
-
-### Custom hooks as a facade over server state
-
-`modules/*/api/*Api.ts` (e.g. `useClaims`, `useFoundItems`) wrap Axios calls,
-response typing, cache keys, and invalidation behind one hook interface.
-Components never call Axios directly and never manage loading/error flags by
-hand.
-
-### Provider pattern
-
-`src/core/providers/QueryProvider.tsx` supplies the configured `QueryClient`
-(`src/core/api/queryClient.ts`: stale time, retry rules, no refetch on focus)
-to the component tree from the root layout.
-
-### Interceptor pattern
-
-`src/core/api/interceptors.ts` attaches a response interceptor to the shared
-Axios client that clears the stored session on `401` from protected
-endpoints. Session-expiry handling therefore lives in one place instead of
-every request call site.
-
-### Shared client module
-
-`src/core/api/client.ts` creates a single configured Axios instance (base
-URL from `NEXT_PUBLIC_API_URL`, `withCredentials`, JSON headers) that every
-feature reuses, so backend configuration has exactly one source of truth.
-
-The repository does not currently use a class-based dependency-injection
-container, Redux-style global stores for server data, or a dedicated
-presentation/container layer split.
+The design patterns behind these decisions (feature slices, singleton API
+client, facade hooks, provider, interceptor, guard) are documented in
+[design-patterns.md](design-patterns.md).
